@@ -1,0 +1,168 @@
+#!chezscheme
+
+(library (cslib string)
+
+  (export
+    string-split-p
+    words
+    unwords
+    lines
+    unlines 
+    string-prefix?
+    string-suffix?
+    string-search
+    string-search-char
+    string-drop-suffix
+    string-split
+    string-replace-all
+    print
+    display-ln
+    display-string-ln 
+    )
+
+  (import
+    (chezscheme)
+    (cslib list)
+    (cslib math)
+    )
+
+  (define (string-split-p sep-char? str)
+    (let loop ([len (string-length str)]
+               [index (dec (string-length str))]
+               [ss '()])
+      (if (= -1 index)
+        (if (= 0 len) ss
+          (cons (substring str 0 len) ss))
+        (let ([c (string-ref str index)])
+          (cond
+            [(not (sep-char? c)) (loop len (dec index) ss)]
+            [(> len (inc index)) (loop index (dec index) (cons (substring str (inc index) len) ss))]
+            [(= len (inc index)) (loop (dec len) (dec index) ss)]
+            [else (error "string-split-p" "index len match")])))))
+
+  (define (words line)
+    (string-split-p char-whitespace? line))
+
+  (define (unwords ws)
+    (apply string-append (intersperse " " ws)))
+
+  (define (lines doc)
+    (string-split-p (lambda (c) (char=? c #\newline)) doc))
+
+  (define (unlines ls)
+    (apply string-append (intersperse "\n" ls)))
+
+  (define (string-prefix? prefix s)
+    (let ([n (string-length prefix)]
+          [len (string-length s)])
+      (and (>= len n)
+           (let loop ([i 0])
+             (or (= i n)
+                 (and (char=? (string-ref s i) (string-ref prefix i))
+                      (loop (+ 1 i))))))))
+
+  (define (string-suffix? suffix s)
+    (let ([n (string-length suffix)]
+          [len (string-length s)])
+      (and (>= len n)
+           (let loop ([i 0] [j (- len n)])
+             (or (= i n)
+                 (and (char=? (string-ref s j) (string-ref suffix i))
+                      (loop (+ 1 i) (+ 1 j))))))))
+
+  (define string-search
+    ; opitional start-pos for search start position (inclusive)
+    (case-lambda
+      [(pattern str) (string-search pattern str 0)]
+      [(pattern str start-pos)
+       (let* ((pat-len (string-length pattern))
+              (search-span (- (string-length str) pat-len))
+              (c1 (if (zero? pat-len) #f (string-ref pattern 0)))
+              (c2 (if (<= pat-len 1) #f (string-ref pattern 1))))
+         (cond
+           ((not c1) start-pos)           ; empty pattern, matches upfront
+           ((not c2) (string-search-char c1 str start-pos)) ; one-char pattern
+           (else                  ; matching a pattern of at least two chars
+             (let outer ((pos start-pos))
+               (cond
+                 [(> pos search-span) #f]	; nothing was found thru the whole str
+                 [(not (char=? c1 (string-ref str pos)))
+                  (outer (+ 1 pos))]	; keep looking for the right beginning
+                 [(not (char=? c2 (string-ref str (+ 1 pos))))
+                  (outer (+ 1 pos))]	; could've done pos+2 if c1 == c2....
+                 [else                  	; two char matched: high probability
+                   ; the rest will match too
+                   (let inner ([i-pat 2] [i-str (+ 2 pos)])
+                     (if (>= i-pat pat-len) pos ; whole pattern matched
+                       (if (char=? (string-ref pattern i-pat)
+                                   (string-ref str i-str))
+                         (inner (+ 1 i-pat) (+ 1 i-str))
+                         (outer (+ 1 pos)))))])))))]))
+
+  (define string-search-char
+    (case-lambda
+      [(a-char str) (string-search-char a-char str 0)]
+      [(a-char str start-pos)
+       (let loop ((pos start-pos))
+         (cond
+           ((>= pos (string-length str)) #f) ; whole string has been searched, in vain
+           ((char=? a-char (string-ref str pos)) pos)
+           (else (loop (+ 1 pos)))))]))
+
+  (define (string-drop-suffix s . suffixes)
+    (define drop-one
+      (lambda (s suffix)
+        (if (string-suffix? suffix s)
+          (substring s 0 (- (string-length s) (string-length suffix)))
+          s)))
+    (define drop-many
+      (lambda (s suffixes)
+        (cond
+          [(null? suffixes) s]
+          [else (drop-many (drop-one s (car suffixes)) (cdr suffixes))])))
+    (drop-many s suffixes))
+
+  (define (string-split seps s)
+    (define split-one
+      (lambda (sep s)
+        (let ([n (string-length sep)])
+          (reverse
+            (let loop ([start-pos 0]
+                       [ss '()])
+              (let ([index (string-search sep s start-pos)])
+                (cond
+                  [(eq? index #f) (cons (substring s start-pos (string-length s)) ss)]
+                  [(number? index) (loop (+ n index) (cons (substring s start-pos index) ss))]
+                  [else (error "string-split" "string-contains index type")])))))))
+    (define split-many
+      (lambda (seps ss)
+        (cond
+          [(null? seps) ss]
+          [else (let ([sep (car seps)])
+                  (split-many (cdr seps) (apply append (map (lambda (s) (split-one (car seps) s)) ss))))])))
+    (cond
+      [(string? seps) (split-one seps s)]
+      [else (split-many seps (list s))]))
+
+  (define (string-replace-all str pattern replacement)
+    (apply string-append (intersperse replacement (string-split pattern str))))
+
+  (define print
+    pretty-print)
+
+  (define display-ln
+    (case-lambda
+      [(x) (display x)
+           (newline)]
+      [(x p) (display x p)
+             (newline p)]))
+
+  (define display-string-ln
+    (case-lambda
+      [(x) (display-string x)
+           (newline)]
+      [(x p) (display-string x p)
+             (newline p)]))
+ 
+
+  )
