@@ -77,8 +77,8 @@
   (define (print-datatable table)
     (put-datatable (current-output-port) table))
 
-  (define (save-datatable path table)
-    (call-with-output-file path (lambda (p) (put-datatable p table))))
+  (define (save-datatable table path)
+    (call-with-output-file path (lambda (p) (put-datatable p table)) 'truncate))
 
   (define (show-datatable table)
     (let-values ([(port g) (open-string-output-port)])

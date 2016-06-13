@@ -8,20 +8,26 @@
     vector-nset!
     vector-nsetf!
     vector-imap
+    vector-i-for-each
     vector-filter
+    vector-head
+    vector-last
     vector-take
     vector-drop
     vector-sum
     subvector
+    make-matrix
     matrix-map
-    matrix-for-each
     matrix-imap
+    matrix-for-each
+    matrix-i-for-each
     matrix-cut
-    matrix-transpose 
+    matrix-transpose
     )
 
   (import
     (chezscheme)
+    (cslib math)
     )
 
   (define (vector-setf! vec n f)
@@ -46,8 +52,18 @@
     (let ([is (list->vector (iota (vector-length ls)))])
       (apply vector-map f is ls more)))
 
+  (define (vector-i-for-each f ls . more)
+    (let ([is (list->vector (iota (vector-length ls)))])
+      (apply vector-for-each f is ls more)))
+
   (define (vector-filter f v)
     (list->vector (filter f (vector->list v))))
+
+  (define (vector-head vec)
+    (vector-ref vec 0))
+
+  (define (vector-last vec)
+    (vector-ref vec (dec (vector-length vec))))
 
   (define (vector-take n xs)
     (let ([len (vector-length xs)])
@@ -72,6 +88,13 @@
          [j start (+ 1 j)]
          ) ((= j end) subvec)
       (vector-set! subvec i (vector-ref vec j))))
+
+  (define make-matrix
+    (case-lambda
+      [(nrows ncols)
+       (vector-map (lambda (_) (make-vector ncols)) (make-vector nrows))]
+      [(nrows ncols obj)
+       (vector-map (lambda (_) (make-vector ncols obj)) (make-vector nrows))]))
 
   (define (matrix-cut mat)
     (let* ([lens (vector-map vector-length mat)]
@@ -103,5 +126,10 @@
     (define (fv . vs)
       (apply vector-for-each f vs))
     (apply vector-for-each fv ms))
+
+  (define (matrix-i-for-each f . ms)
+    (define (fv i . vs)
+      (apply vector-i-for-each (lambda (j . xs) (apply f i j xs)) vs))
+    (apply vector-i-for-each fv ms))
 
   )

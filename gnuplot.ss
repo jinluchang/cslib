@@ -59,7 +59,7 @@
     (define pairs
       (filter pair? cmds))
     (define (save-pair p)
-      (save-datatable (filepath-append tdir (car p)) (cdr p)))
+      (save-datatable (cdr p) (filepath-append tdir (car p))))
     (for-each save-pair pairs))
 
   (define (make-plot . cmds)
@@ -73,9 +73,18 @@
 
   (define (plot-save fn . cmds)
     (let ([tdir (apply make-plot cmds)])
-      (if (string-suffix? ".pdf" fn)
-        (system (format "epstopdf ~a/plot-0.eps --outfile=~a/plot-0.pdf ; mv ~a/plot-0.pdf ~s" tdir tdir tdir fn))
-        (system (format "mv ~a/plot-0.eps ~s" tdir fn))))
+      (cond
+        [(or (string-suffix? ".eps.pdf" fn) (string-suffix? ".pdf.eps" fn))
+         (system (format "epstopdf ~a/plot-0.eps --outfile=~a/plot-0.pdf ; mv ~a/plot-0.pdf ~s.pdf"
+                         tdir tdir tdir (string-drop-suffix fn ".pdf.eps" ".eps.pdf")))
+         (system (format "mv ~a/plot-0.eps ~s.eps"
+                         tdir (string-drop-suffix fn ".pdf.eps" ".eps.pdf")))]
+        [(string-suffix? ".pdf" fn)
+         (system (format "epstopdf ~a/plot-0.eps --outfile=~a/plot-0.pdf ; mv ~a/plot-0.pdf ~s" tdir tdir tdir fn))]
+        [(string-suffix? ".eps" fn)
+         (system (format "mv ~a/plot-0.eps ~s" tdir fn))]
+        [else
+          (error "plot-save" "unsupported extension")]))
     (void))
 
   (define (plot-view . cmds)

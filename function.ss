@@ -5,7 +5,7 @@
   (export
     id
     compose
-    on 
+    on
     )
 
   (import

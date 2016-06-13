@@ -7,7 +7,7 @@
     observe-with
     observe-print
     witness
-    witness-with 
+    witness-with
     )
 
   (import

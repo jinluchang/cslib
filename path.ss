@@ -14,12 +14,14 @@
     scpath-sort
     </>
     filepath-append
+    directory-empty?
+    directory-nonempty?
     directory-list-paths
     directory-list-directory-paths
     with-cd
-    mkdir-p 
+    mkdir-p
     save-fasl-obj
-    load-fasl-obj 
+    load-fasl-obj
     )
 
   (import
@@ -30,7 +32,7 @@
     )
 
   (define (scpath-split path)
-    (string-split '("/" " ; ") path))
+    (string-split path "/" " ; "))
 
   (define (sclist-filter property sclist)
     (define (f value)
@@ -69,6 +71,14 @@
   (define (filepath-append . names)
     (apply string-append (intersperse </> names)))
 
+  (define (directory-empty? dir)
+    ; non-existant directory is empty
+    (not (directory-nonempty? dir)))
+
+  (define (directory-nonempty? dir)
+    (and (file-directory? dir)
+         (not (null? (directory-list dir)))))
+
   (define directory-list-paths
     (case-lambda
       [(dir)
@@ -88,11 +98,13 @@
       [(mkdir-p (path-parent path)) (mkdir path)]
       [else (error "mkdir-p" "can not make")]))
 
-  (define (with-cd dir thunk)
-    (let ([cwd (cd)])
-      (cd dir)
-      (thunk)
-      (cd cwd)))
+  (define-syntax with-cd
+    (syntax-rules ()
+      [(_ dir e ...)
+       (let ([cwd (cd)])
+         (cd dir)
+         e ...
+         (cd cwd))]))
 
   (define (save-fasl-obj path obj)
     (mkdir-p (path-parent path))

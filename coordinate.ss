@@ -5,6 +5,7 @@
   (export
     make-coordinate
     make-origin
+    string->coordinate
     coordinate-dimension
     coordinate-regularize
     coordinate-relativize
@@ -19,6 +20,7 @@
   (import
     (chezscheme)
     (cslib vector)
+    (cslib string)
     (cslib math)
     )
 
@@ -27,6 +29,11 @@
 
   (define (make-origin dim)
     (make-vector dim 0))
+
+  (define (string->coordinate str)
+    (let* ([len (string-length str)]
+           [cstr (substring str 1 (dec len))])
+      (list->vector (map string->number (string-split cstr ",")))))
 
   (define coordinate-dimension
     (case-lambda

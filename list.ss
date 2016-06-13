@@ -4,14 +4,14 @@
 
   (export
     setf-car!
-    setf-cdr! 
+    setf-cdr!
     head
     tail
     take
     drop
     intersperse
     mapM
-    imap 
+    imap
     ass-lookup
     )
 

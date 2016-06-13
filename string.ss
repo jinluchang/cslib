@@ -7,7 +7,7 @@
     words
     unwords
     lines
-    unlines 
+    unlines
     string-prefix?
     string-suffix?
     string-search
@@ -17,7 +17,7 @@
     string-replace-all
     print
     display-ln
-    display-string-ln 
+    display-string-ln
     )
 
   (import
@@ -26,7 +26,7 @@
     (cslib math)
     )
 
-  (define (string-split-p sep-char? str)
+  (define (string-split-p str sep-char?)
     (let loop ([len (string-length str)]
                [index (dec (string-length str))]
                [ss '()])
@@ -41,13 +41,13 @@
             [else (error "string-split-p" "index len match")])))))
 
   (define (words line)
-    (string-split-p char-whitespace? line))
+    (string-split-p line char-whitespace?))
 
   (define (unwords ws)
     (apply string-append (intersperse " " ws)))
 
   (define (lines doc)
-    (string-split-p (lambda (c) (char=? c #\newline)) doc))
+    (string-split-p doc (lambda (c) (char=? c #\newline))))
 
   (define (unlines ls)
     (apply string-append (intersperse "\n" ls)))
@@ -122,9 +122,9 @@
           [else (drop-many (drop-one s (car suffixes)) (cdr suffixes))])))
     (drop-many s suffixes))
 
-  (define (string-split seps s)
+  (define (string-split s . seps)
     (define split-one
-      (lambda (sep s)
+      (lambda (s sep)
         (let ([n (string-length sep)])
           (reverse
             (let loop ([start-pos 0]
@@ -135,20 +135,18 @@
                   [(number? index) (loop (+ n index) (cons (substring s start-pos index) ss))]
                   [else (error "string-split" "string-contains index type")])))))))
     (define split-many
-      (lambda (seps ss)
+      (lambda (ss seps)
         (cond
           [(null? seps) ss]
           [else (let ([sep (car seps)])
-                  (split-many (cdr seps) (apply append (map (lambda (s) (split-one (car seps) s)) ss))))])))
-    (cond
-      [(string? seps) (split-one seps s)]
-      [else (split-many seps (list s))]))
+                  (split-many (apply append (map (lambda (s) (split-one s (car seps))) ss)) (cdr seps)))])))
+    (split-many (list s) seps))
 
   (define (string-replace-all str pattern replacement)
-    (apply string-append (intersperse replacement (string-split pattern str))))
+    (apply string-append (intersperse replacement (string-split str pattern))))
 
-  (define print
-    pretty-print)
+  (define (print . vs)
+    (for-each pretty-print vs))
 
   (define display-ln
     (case-lambda
@@ -163,6 +161,6 @@
            (newline)]
       [(x p) (display-string x p)
              (newline p)]))
- 
+
 
   )
