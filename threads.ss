@@ -10,16 +10,23 @@
     bqueue-wait
     bqueue-de!
     bqueue-en!
+    threads-result-bqueue-capacity
     threads-job-init
     threads-job-wait
     threads-job-terminate
     threads-job-submit
+    imap-par
+    i-for-each-par
+    map-par
+    for-each-par
     )
 
   (import
     (chezscheme)
     (cslib math)
+    (cslib function)
     (cslib path)
+    (cslib list)
     )
 
   (define-record-type bqueue
@@ -29,7 +36,7 @@
       (mutable tail)
       (immutable mutex)
       (immutable ready)
-      (immutable room) 
+      (immutable room)
       (immutable clear))
     (protocol
       (lambda (new)
@@ -116,25 +123,20 @@
   (define threads-job-bqueue
     (make-parameter #f))
 
-  (define threads-result-queue
-    (make-parameter #f))
+  (define threads-result-bqueue-capacity
+    (make-parameter 8))
 
   (define threads-job-counter
     (make-counter))
 
   (define (make-threads-job-thunk job-id)
-    (let ([job-bqueue (threads-job-bqueue)]
-          [result-queue (threads-result-queue)])
+    (let ([job-bqueue (threads-job-bqueue)])
       (rec loop
         (lambda ()
           (let ([job (bqueue-de! job-bqueue)])
             (cond
               [(procedure? job)
-               (bqueue-en! result-queue (job))
-               (counter-dec! threads-job-counter)
-               (loop)]
-              [(and (pair? job) (eq? 'void (car job)))
-               ((cdr job))
+               (job)
                (counter-dec! threads-job-counter)
                (loop)]
               [(eq? 'terminate job)
@@ -154,7 +156,6 @@
       [(n m)
        (threads-worker-number n)
        (threads-job-bqueue (make-bqueue m))
-       (threads-result-queue (make-bqueue m))
        (for-each (lambda (job-id) (fork-thread (make-threads-job-thunk job-id))) (iota n))]))
 
   (define (threads-job-wait)
@@ -171,7 +172,47 @@
        (let ([job-bqueue (threads-job-bqueue)])
          (if (eq? job-bqueue #f)
            (begin e ...)
-           (threads-job-bqueue-en! job-bqueue
-                                   (cons 'void (lambda () e ...)))))]))
+           (threads-job-bqueue-en!
+             job-bqueue
+             (lambda () e ...))))]))
+
+  (define (imap-par f l . ls)
+    (let ([job-bqueue (threads-job-bqueue)])
+      (if (eq? job-bqueue #f) (apply imap f l ls)
+        (let* ([result-bqueue (make-bqueue (threads-result-bqueue-capacity))]
+               [len (length l)]
+               [is (iota len)])
+          (define (submit i . vs)
+            (threads-job-bqueue-en!
+              job-bqueue
+              (lambda ()
+                (bqueue-en! result-bqueue (cons i (apply f i vs))))))
+          (define (extract n)
+            (if (= n 0) '()
+              (cons (bqueue-de! result-bqueue) (extract (dec n)))))
+          (fork-thread (lambda () (apply for-each submit is l ls)))
+          (map cdr (sort (on < car) (extract len)))))))
+
+  (define (i-for-each-par f l . ls)
+    (let ([job-bqueue (threads-job-bqueue)])
+      (if (eq? job-bqueue #f) (apply i-for-each f l ls)
+        (let* ([counter (make-counter)]
+               [len (length l)]
+               [is (iota len)])
+          (define (submit i . vs)
+            (threads-job-bqueue-en!
+              job-bqueue
+              (lambda ()
+                (apply f i vs)
+                (counter-dec! counter))))
+          (counter-n-set! counter len)
+          (fork-thread (lambda () (apply for-each submit is l ls)))
+          (counter-wait counter)))))
+
+  (define (map-par f . ls)
+    (apply imap-par (lambda (i . vs) (apply f vs)) ls))
+
+  (define (for-each-par f . ls)
+    (apply i-for-each-par (lambda (i . vs) (apply f vs)) ls))
 
   )

@@ -12,6 +12,7 @@
     intersperse
     mapM
     imap
+    i-for-each
     ass-lookup
     )
 
@@ -67,7 +68,11 @@
 
   (define (imap f ls . more)
     (let ([is (iota (length ls))])
-      (apply map is ls more)))
+      (apply map f is ls more)))
+
+  (define (i-for-each f ls . more)
+    (let ([is (iota (length ls))])
+      (apply for-each f is ls more)))
 
   (define (ass-lookup tag alist)
     (cdr (assq tag alist)))
