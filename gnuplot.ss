@@ -62,33 +62,36 @@
       (save-datatable (cdr p) (filepath-append tdir (car p))))
     (for-each save-pair pairs))
 
-  (define (make-plot . cmds)
+  (define (make-plot wd . cmds)
     (let ([tdir (make-gnuplot-dir)])
       (make-mp-to-eps-script tdir "convert.sh")
       (make-gnuplot-script tdir "plotfile" cmds)
       (save-gnuplot-datatables tdir cmds)
-      (system (format "gnuplot ~a/plotfile >>~a/log" tdir tdir))
-      (system (format "bash ~a/convert.sh >>~a/log" tdir tdir))
+      (system (format "cd ~s ; pwd >>~a/log" wd tdir))
+      (system (format "cd ~s ; gnuplot ~a/plotfile >>~a/log" wd tdir tdir))
+      (system (format "cd ~s ; bash ~a/convert.sh >>~a/log" wd tdir tdir))
       tdir))
 
-  (define (plot-save fn . cmds)
-    (let ([tdir (apply make-plot cmds)])
+  (define (plot-save wd fn . cmds)
+    (let ([wd (if (string=? wd "") "." wd)]
+          [tdir (apply make-plot wd cmds)])
       (cond
         [(or (string-suffix? ".eps.pdf" fn) (string-suffix? ".pdf.eps" fn))
-         (system (format "epstopdf ~a/plot-0.eps --outfile=~a/plot-0.pdf ; mv ~a/plot-0.pdf ~s.pdf"
-                         tdir tdir tdir (string-drop-suffix fn ".pdf.eps" ".eps.pdf")))
-         (system (format "mv ~a/plot-0.eps ~s.eps"
-                         tdir (string-drop-suffix fn ".pdf.eps" ".eps.pdf")))]
+         (system (format "epstopdf ~a/plot-0.eps --outfile=~a/plot-0.pdf ; mv ~a/plot-0.pdf ~s/~s.pdf"
+                         tdir tdir tdir wd (string-drop-suffix fn ".pdf.eps" ".eps.pdf")))
+         (system (format "mv ~a/plot-0.eps ~s/~s.eps"
+                         tdir wd (string-drop-suffix fn ".pdf.eps" ".eps.pdf")))]
         [(string-suffix? ".pdf" fn)
-         (system (format "epstopdf ~a/plot-0.eps --outfile=~a/plot-0.pdf ; mv ~a/plot-0.pdf ~s" tdir tdir tdir fn))]
+         (system (format "epstopdf ~a/plot-0.eps --outfile=~a/plot-0.pdf ; mv ~a/plot-0.pdf ~s/~s" tdir tdir tdir wd fn))]
         [(string-suffix? ".eps" fn)
-         (system (format "mv ~a/plot-0.eps ~s" tdir fn))]
+         (system (format "mv ~a/plot-0.eps ~s/~s" tdir wd fn))]
         [else
           (error "plot-save" "unsupported extension")]))
     (void))
 
-  (define (plot-view . cmds)
-    (let ([tdir (apply make-plot cmds)])
+  (define (plot-view wd . cmds)
+    (let ([wd (if (string=? wd "") "." wd)]
+          [tdir (apply make-plot wd cmds)])
       (system (format "evince ~a/plot-0.eps >>~a/log 2>&1 &" tdir tdir)))
     (void))
 

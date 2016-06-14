@@ -12,6 +12,7 @@
     (import (chezscheme))
     (import (cslib utils))
     (import (cslib debug))
+    (import (cslib threads))
     (import (cslib list))
     (import (cslib string))
     (import (cslib vector))
