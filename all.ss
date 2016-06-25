@@ -12,6 +12,7 @@
     (import (chezscheme))
     (import (cslib utils))
     (import (cslib debug))
+    (import (cslib pmatch))
     (import (cslib threads))
     (import (cslib list))
     (import (cslib string))
