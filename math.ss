@@ -212,5 +212,4 @@
                        (adaptive-simpsons-recursive-low-limit)))])]
        [else (error "adaptive-simpsons" "start end comparison failed")])]))
 
-
   )

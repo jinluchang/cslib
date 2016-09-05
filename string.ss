@@ -162,5 +162,4 @@
       [(x p) (display-string x p)
              (newline p)]))
 
-
   )

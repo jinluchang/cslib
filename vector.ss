@@ -15,6 +15,7 @@
     vector-take
     vector-drop
     vector-sum
+    vector-append
     subvector
     make-matrix
     matrix-map
@@ -81,6 +82,9 @@
 
   (define (vector-sum v)
     (apply + (vector->list v)))
+
+  (define (vector-append . vs)
+    (list->vector (apply append (map vector->list vs))))
 
   (define (subvector vec start end)
     (do ([subvec (make-vector (- end start))]
