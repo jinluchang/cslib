@@ -8,6 +8,7 @@
     observe-print
     witness
     witness-with
+    comment
     )
 
   (import
@@ -39,5 +40,10 @@
     (syntax-rules ()
       [(_ f e ...)
        (begin f (e ...))]))
+
+  (define-syntax comment
+    (syntax-rules ()
+      [(_ ...)
+       '()]))
 
   )
