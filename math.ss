@@ -1,6 +1,7 @@
 #!chezscheme
 
 (library (cslib math)
+  ; )
 
   (export
     pi
@@ -60,13 +61,13 @@
       (if (not (flinteger? x)) x
         (inexact->exact x))))
 
-; -----------------------------------------------------------------------------------------------
+  ; -----------------------------------------------------------------------------------------------
 
   (define (fib n)
     (if (<= n 1) n
       (+ (fib (- n 1)) (fib (- n 2)))))
 
-; -----------------------------------------------------------------------------------------------
+  ; -----------------------------------------------------------------------------------------------
 
   (define make-ss
     (case-lambda
@@ -129,7 +130,7 @@
   (define (ve- . ves)
     (make-ve (apply - (map car ves)) (apply err+ (map cdr ves))))
 
-; -----------------------------------------------------------------------------------------------
+  ; -----------------------------------------------------------------------------------------------
 
   (define (bisect-search f a b err-limit)
     (define (sign-different? x y)
@@ -151,65 +152,66 @@
                 [else #f]))])))
     (go a b (f a) (f b)))
 
-; -----------------------------------------------------------------------------------------------
+  ; -----------------------------------------------------------------------------------------------
 
-(define adaptive-simpsons-recursive-limit
-  (make-parameter 32))
+  (define adaptive-simpsons-recursive-limit
+    (make-parameter 32))
 
-(define adaptive-simpsons-recursive-low-limit
-  (make-parameter 8))
+  (define adaptive-simpsons-recursive-low-limit
+    (make-parameter 8))
 
-(define (simpson f a b c eps s fa fb fc l ll)
-  (let* ([h (- b a)]
-         [d (/ (+ a c) 2.0)]
-         [e (/ (+ c b) 2.0)]
-         [fd (f d)]
-         [fe (f e)]
-         [sleft (* (/ h 12.0) (+ fa (* 4.0 fd) fc))]
-         [sright (* (/ h 12.0) (+ fc (* 4.0 fe) fb))]
-         [s2 (+ sleft sright)])
-    (if (or (< l 0)
-            (and (<= ll 0)
-                 (<= (abs (- s2 s)) (* 8.0 eps))))
-      (+ s2 (/ (- s2 s) 8.0))
-      (+ (simpson f a c d (/ eps 2.0) sleft fa fc fd (dec l) (dec ll))
-         (simpson f c b e (/ eps 2.0) sright fc fb fe (dec l) (dec ll))))))
+  (define (simpson f a b c eps s fa fb fc l ll)
+    (let* ([h (- b a)]
+           [d (/ (+ a c) 2.0)]
+           [e (/ (+ c b) 2.0)]
+           [fd (f d)]
+           [fe (f e)]
+           [sleft (* (/ h 12.0) (+ fa (* 4.0 fd) fc))]
+           [sright (* (/ h 12.0) (+ fc (* 4.0 fe) fb))]
+           [s2 (+ sleft sright)])
+      (if (or (< l 0)
+              (and (<= ll 0)
+                   (<= (abs (- s2 s)) (* 8.0 eps))))
+        (+ s2 (/ (- s2 s) 8.0))
+        (+ (simpson f a c d (/ eps 2.0) sleft fa fc fd (dec l) (dec ll))
+           (simpson f c b e (/ eps 2.0) sright fc fb fe (dec l) (dec ll))))))
 
-(define adaptive-simpsons
-  (case-lambda
-    [(f start end)
-     (adaptive-simpsons f start end 1.0e-8)]
-    [(f start end epsilon)
-     (cond
-       [(> start end) (- (adaptive-simpsons f end start epsilon))]
-       [(= start end) 0.0]
-       [(< start end)
-        (cond
-          [(and (= start -inf.0) (= end +inf.0))
-           (+ (adaptive-simpsons f start 0.0 (/ epsilon 2.0))
-              (adaptive-simpsons f 0.0 end (/ epsilon 2.0)))]
-          [(= end +inf.0)
-           (let ([f (lambda (x)
-                      (if (= x 1.0) 0.0
-                        (/ (f (+ start (/ x (- 1.0 x))))
-                           (sqr (- 1.0 x)))))])
-             (adaptive-simpsons f 0.0 1.0 epsilon))]
-          [(= start -inf.0)
-           (let ([f (lambda (x)
-                      (if (= x 1.0) 0.0
-                        (/ (f (- end (/ x (- 1.0 x))))
-                           (sqr (- 1.0 x)))))])
-             (adaptive-simpsons f 0.0 1.0 epsilon))]
-          [else
-            (let* ([center (/ (+ start end) 2.0)]
-                   [width (- end start)]
-                   [fstart (f start)]
-                   [fend (f end)]
-                   [fcenter (f center)]
-                   [sestimate (* (/ width 6.0) (+ fstart (* 4.0 fcenter) fend))])
-              (simpson f start end center epsilon sestimate fstart fend fcenter
-                       (adaptive-simpsons-recursive-limit)
-                       (adaptive-simpsons-recursive-low-limit)))])]
-       [else (error "adaptive-simpsons" "start end comparison failed")])]))
+  (define adaptive-simpsons
+    (case-lambda
+      [(f start end)
+       (adaptive-simpsons f start end 1.0e-8)]
+      [(f start end epsilon)
+       (cond
+         [(> start end) (- (adaptive-simpsons f end start epsilon))]
+         [(= start end) 0.0]
+         [(< start end)
+          (cond
+            [(and (= start -inf.0) (= end +inf.0))
+             (+ (adaptive-simpsons f start 0.0 (/ epsilon 2.0))
+                (adaptive-simpsons f 0.0 end (/ epsilon 2.0)))]
+            [(= end +inf.0)
+             (let ([f (lambda (x)
+                        (if (= x 1.0) 0.0
+                          (/ (f (+ start (/ x (- 1.0 x))))
+                             (sqr (- 1.0 x)))))])
+               (adaptive-simpsons f 0.0 1.0 epsilon))]
+            [(= start -inf.0)
+             (let ([f (lambda (x)
+                        (if (= x 1.0) 0.0
+                          (/ (f (- end (/ x (- 1.0 x))))
+                             (sqr (- 1.0 x)))))])
+               (adaptive-simpsons f 0.0 1.0 epsilon))]
+            [else
+              (let* ([center (/ (+ start end) 2.0)]
+                     [width (- end start)]
+                     [fstart (f start)]
+                     [fend (f end)]
+                     [fcenter (f center)]
+                     [sestimate (* (/ width 6.0) (+ fstart (* 4.0 fcenter) fend))])
+                (simpson f start end center epsilon sestimate fstart fend fcenter
+                         (adaptive-simpsons-recursive-limit)
+                         (adaptive-simpsons-recursive-low-limit)))])]
+         [else (error "adaptive-simpsons" "start end comparison failed")])]))
 
+  ; (
   )

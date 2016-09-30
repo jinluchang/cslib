@@ -1,6 +1,7 @@
 #!chezscheme
 
 (library (cslib vector)
+  ; )
 
   (export
     vector-setf!
@@ -136,4 +137,5 @@
       (apply vector-i-for-each (lambda (j . xs) (apply f i j xs)) vs))
     (apply vector-i-for-each fv ms))
 
+  ; (
   )
