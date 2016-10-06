@@ -25,6 +25,7 @@
     matrix-i-for-each
     matrix-cut
     matrix-transpose
+    matrix-sum
     )
 
   (import
@@ -136,6 +137,9 @@
     (define (fv i . vs)
       (apply vector-i-for-each (lambda (j . xs) (apply f i j xs)) vs))
     (apply vector-i-for-each fv ms))
+
+  (define (matrix-sum v)
+    (vector-sum (vector-map vector-sum v)))
 
   ; (
   )
