@@ -7,6 +7,8 @@
     setf-cdr!
     head
     tail
+    init
+    last
     take
     drop
     intersperse
@@ -30,6 +32,15 @@
     (car xs))
 
   (define (tail xs)
+    (cdr xs))
+
+  (define (init xs)
+    (let loop ([x (car xs)]
+               [rs (cdr xs)])
+      (if (not (pair? rs)) rs
+        (cons x (loop (car rs) (cdr rs))))))
+
+  (define (last xs)
     (car (last-pair xs)))
 
   (define (take n xs)
@@ -74,7 +85,12 @@
     (let ([is (iota (length ls))])
       (apply for-each f is ls more)))
 
-  (define (ass-lookup tag alist)
-    (cdr (assq tag alist)))
+  (define (ass-lookup . tags-alist)
+    (define (go tags alist)
+      (if (not (pair? tags)) alist
+        (go (cdr tags) (cdr (assq (car tags) alist)))))
+    (let ([tags (init tags-alist)]
+          [alist (last tags-alist)])
+      (go tags alist)))
 
   )
