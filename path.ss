@@ -42,7 +42,7 @@
     (map d (filter f sclist)))
 
   (define (sclist-find default property sclist)
-    (tail (cons default (sclist-filter property sclist))))
+    (last (cons default (sclist-filter property sclist))))
 
   (define (sclist-find-f default f property sclist)
     (let* ([str (sclist-find #f property sclist)])
