@@ -5,7 +5,9 @@
   (export
     datatable?
     get-datatable
+    get-lines
     load-datatable
+    load-lines
     read-datatable
     put-datatable
     print-datatable
@@ -25,6 +27,13 @@
     (and (vector? table)
          (< 0 (vector-length table))
          (vector? (vector-ref table 0))))
+
+  (define (get-lines port) ; port is a input-port
+    (let loop ()
+      (let ([line (get-line port)])
+        (cond
+          [(eof-object? line) '()]
+          [else (cons line (loop))]))))
 
   (define (get-datatable port) ; port is a input-port
     (define (fl line)
@@ -61,6 +70,9 @@
            ((= i n) xsp)
            (vector-set! xsp i (vector-ref xs i)))]
         [else xs])))
+
+  (define (load-lines path)
+    (call-with-input-file path get-lines))
 
   (define (load-datatable path)
     (call-with-input-file path get-datatable))

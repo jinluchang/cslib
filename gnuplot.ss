@@ -92,7 +92,8 @@
   (define (plot-view wd . cmds)
     (let ([wd (if (string=? wd "") "." wd)]
           [tdir (apply make-plot wd cmds)])
-      (system (format "evince ~a/plot-0.eps >>~a/log 2>&1 &" tdir tdir)))
+      (system (format "epstopdf ~a/plot-0.eps --outfile=~a/plot-0.pdf" tdir tdir))
+      (system (format "evince ~a/plot-0.pdf >>~a/log 2>&1 &" tdir tdir)))
     (void))
 
   )

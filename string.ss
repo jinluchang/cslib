@@ -15,6 +15,8 @@
     string-drop-suffix
     string-split
     string-replace-all
+    take-string
+    drop-string
     print
     display-ln
     display-string-ln
@@ -144,6 +146,13 @@
 
   (define (string-replace-all str pattern replacement)
     (apply string-append (intersperse replacement (string-split str pattern))))
+
+  (define (take-string n str)
+    (substring str 0 (min n (string-length str))))
+
+  (define (drop-string n str)
+    (let ([len (string-length str)])
+      (substring str (min n len) len)))
 
   (define (print . vs)
     (for-each pretty-print vs))
