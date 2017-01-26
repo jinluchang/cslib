@@ -57,13 +57,18 @@
   (define (scpair-find-f default f property scpair)
     (sclist-find-f default f property (cdr scpair)))
 
-  (define (make-property-pair default f property path)
-    (cons (sclist-find-f default f property (scpath-split path)) path))
+  (define (make-property-pair default f property path . suffixs)
+    (cons (scpair-find-f default f property
+                         (apply make-scpair path suffixs))
+          path))
 
-  (define (scpath-sort cmp default f property paths)
-    (map cdr (list-sort
-               (on cmp car)
-               (map (lambda (path) (make-property-pair default f property path)) paths))))
+  (define (scpath-sort < default f property paths)
+    (map cdr
+         (list-sort
+           (on < car)
+           (map (lambda (path)
+                  (make-property-pair default f property path))
+                paths))))
 
   (define </>
     (string (directory-separator)))

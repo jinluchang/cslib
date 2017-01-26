@@ -16,10 +16,14 @@
     imap
     i-for-each
     ass-lookup
+    list-group
+    list-gsort
+    plist-gsort
     )
 
   (import
     (chezscheme)
+    (cslib function)
     )
 
   (define (setf-car! p f)
@@ -92,5 +96,25 @@
     (let ([tags (init tags-alist)]
           [alist (last tags-alist)])
       (go tags alist)))
+
+  (define (list-group = xs)
+    (define (go x g gs xs)
+      (cond
+        [(null? xs) (reverse (cons g gs))]
+        [(pair? xs)
+         (if (= x (car xs))
+           (go x (cons (car xs) g) gs (cdr xs))
+           (go (car xs) (list (car xs)) (cons (reverse g) gs) (cdr xs)))]))
+    (cond
+      [(null? xs) xs]
+      [(pair? xs) (go (car xs) (list (car xs)) (list) (cdr xs))]))
+
+  (define (list-gsort = < xs)
+    (list-group = (list-sort < xs)))
+
+  (define (plist-gsort = < pairs)
+    (map (lambda (ps)
+           (cons (caar ps) (map cdr ps)))
+         (list-gsort (on = car) (on < car) pairs)))
 
   )
