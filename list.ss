@@ -18,7 +18,7 @@
     ass-lookup
     list-group
     list-gsort
-    plist-gsort
+    alist-gsort
     )
 
   (import
@@ -112,7 +112,7 @@
   (define (list-gsort = < xs)
     (list-group = (list-sort < xs)))
 
-  (define (plist-gsort = < pairs)
+  (define (alist-gsort = < pairs)
     (map (lambda (ps)
            (cons (caar ps) (map cdr ps)))
          (list-gsort (on = car) (on < car) pairs)))
