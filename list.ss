@@ -92,7 +92,9 @@
   (define (ass-lookup . tags-alist)
     (define (go tags alist)
       (if (not (pair? tags)) alist
-        (go (cdr tags) (cdr (assq (car tags) alist)))))
+        (let ([p (assq (car tags) alist)])
+          (if (eq? #f p) #f
+            (go (cdr tags) (cdr p))))))
     (let ([tags (init tags-alist)]
           [alist (last tags-alist)])
       (go tags alist)))

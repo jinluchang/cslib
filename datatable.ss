@@ -72,10 +72,16 @@
         [else xs])))
 
   (define (load-lines path)
-    (call-with-input-file path get-lines))
+    (let* ([p (open-input-file path)]
+           [lines (get-lines p)])
+      (close-input-port p)
+      lines))
 
   (define (load-datatable path)
-    (call-with-input-file path get-datatable))
+    (let* ([p (open-input-file path)]
+           [table (get-datatable p)])
+      (close-input-port p)
+      table))
 
   (define (read-datatable str)
     (get-datatable (open-string-input-port str)))
