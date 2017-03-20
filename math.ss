@@ -35,6 +35,7 @@
 
   (import
     (chezscheme)
+    (cslib utils)
     )
 
   (define pi 3.141592653589793)
@@ -52,9 +53,7 @@
     (/ (exact->inexact x) (exact->inexact y)))
 
   (define atof
-    (begin
-      (load-shared-object "libc.so.6")
-      (foreign-procedure "atof" (string) double)))
+    (when load-libraries (foreign-procedure "atof" (string) double)))
 
   (define (atofi s)
     (let ([x (atof s)])

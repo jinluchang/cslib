@@ -16,13 +16,16 @@
   ; Taken from leanTAP.scm
   ; http://kanren.cvs.sourceforge.net/kanren/kanren/mini/leanTAP.scm?view=log
 
+  ; Taken from https://github.com/yinwang0/lightsabers/blob/master/pmatch.scm
+
   ; A simple linear pattern matcher
   ; It is efficient (generates code at macro-expansion time) and simple.
 
   ; (pmatch exp <clause> ...[<else-clause>])
-  ; <clause> ::= (<pattern> <guard> exp ...)
+  ; <clause> ::= (<pattern> exp ...)
+  ;            | (<pattern> (guard <guard> ..) exp ...)
   ; <else-clause> ::= (else exp ...)
-  ; <guard> ::= boolean exp | ()
+  ; <guard> ::= boolean-exp
   ; <pattern> :: =
   ;        ,var  -- matches always and binds the var
   ;                 pattern must be linear! No check is done
