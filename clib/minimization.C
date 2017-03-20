@@ -9,11 +9,11 @@ extern "C" {
 
   typedef double (*CLIB_GSL_MINIMIZATION_FUNCTION)(const int, const double*);
 
-  void clib_gsl_mult_minimization_nmsimplex2(
+  size_t clib_gsl_mult_minimization_nmsimplex2(
       const int n_params,
-      const double* initial_values,
-      const double* initial_steps,
-      const CLIB_GSL_MINIMIZATION_FUNCTION f);
+      const CLIB_GSL_MINIMIZATION_FUNCTION f,
+      double* double_inputs,
+      const size_t max_iter);
 
 }
 
@@ -29,68 +29,56 @@ double clib_gsl_minimization_function(const gsl_vector* v, void* params)
   return f(size, vec.data());
 }
 
-void clib_gsl_mult_minimization_nmsimplex2(
+size_t clib_gsl_mult_minimization_nmsimplex2(
     const int n_params,
-    const double* initial_values,
-    const double* initial_steps,
-    const CLIB_GSL_MINIMIZATION_FUNCTION f)
+    const CLIB_GSL_MINIMIZATION_FUNCTION f,
+    double* double_inputs,
+    const size_t max_iter)
 {
-  double par[5] = {1.0, 2.0, 10.0, 20.0, 30.0};
-
-  const gsl_multimin_fminimizer_type *T = 
-    gsl_multimin_fminimizer_nmsimplex2;
-  gsl_multimin_fminimizer *s = NULL;
-  gsl_vector *ss, *x;
-  gsl_multimin_function minex_func;
-
-  size_t iter = 0;
-  int status;
-  double size;
-
-  /* Starting point */
-  x = gsl_vector_alloc (2);
-  gsl_vector_set (x, 0, 5.0);
-  gsl_vector_set (x, 1, 7.0);
-
-  /* Set initial step sizes to 1 */
-  ss = gsl_vector_alloc (2);
-  gsl_vector_set_all (ss, 1.0);
-
+  double* params = double_inputs;
+  const double* step_sizes = double_inputs + n_params;
+  double* p_epsabs = double_inputs + 2 * n_params;
+  double* fvalue = double_inputs + 2 * n_params + 1;
+  gsl_vector *x, *ss;
+  x = gsl_vector_alloc(n_params);
+  ss = gsl_vector_alloc(n_params);
+  for (int i = 0; i < n_params; ++i) {
+    /* Starting point */
+    gsl_vector_set(x, i, params[i]);
+    /* Set initial step sizes to 1 */
+    gsl_vector_set(ss, i, step_sizes[i]);
+  }
   /* Initialize method and iterate */
-  minex_func.n = 2;
+  const gsl_multimin_fminimizer_type* T = gsl_multimin_fminimizer_nmsimplex2;
+  gsl_multimin_fminimizer *s = gsl_multimin_fminimizer_alloc(T, n_params);
+  gsl_multimin_function minex_func;
+  minex_func.n = n_params;
   minex_func.f = clib_gsl_minimization_function;
   minex_func.params = (void*)f;
-
-  s = gsl_multimin_fminimizer_alloc (T, 2);
-  gsl_multimin_fminimizer_set (s, &minex_func, x, ss);
-
-  do
-    {
-      iter++;
-      status = gsl_multimin_fminimizer_iterate(s);
-      
-      if (status) 
-        break;
-
-      size = gsl_multimin_fminimizer_size (s);
-      status = gsl_multimin_test_size (size, 1e-2);
-
-      if (status == GSL_SUCCESS)
-        {
-          printf ("converged to minimum at\n");
-        }
-
-      printf ("%5d %10.3e %10.3e f() = %7.3f size = %.3f\n", 
-              (int)iter,
-              gsl_vector_get (s->x, 0), 
-              gsl_vector_get (s->x, 1), 
-              s->fval, size);
+  gsl_multimin_fminimizer_set(s, &minex_func, x, ss);
+  size_t iter;
+  int status;
+  double size;
+  for (iter = 0; iter < max_iter; ++iter) {
+    status = gsl_multimin_fminimizer_iterate(s);
+    if (status) {
+      break;
     }
-  while (status == GSL_CONTINUE && iter < 100);
-  
+    size = gsl_multimin_fminimizer_size(s);
+    status = gsl_multimin_test_size(size, *p_epsabs);
+    if (status == GSL_SUCCESS) {
+      break;
+    }
+  }
+  for (int i = 0; i < n_params; ++i) {
+    params[i] = gsl_vector_get(s->x, i);
+  }
+  *fvalue = s->fval;
+  *p_epsabs = size;
   gsl_vector_free(x);
   gsl_vector_free(ss);
-  gsl_multimin_fminimizer_free (s);
+  gsl_multimin_fminimizer_free(s);
+  return iter;
 }
 
 double my_f(const gsl_vector *v, void *params)

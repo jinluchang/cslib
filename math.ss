@@ -31,11 +31,15 @@
     adaptive-simpsons
     adaptive-simpsons-recursive-limit
     adaptive-simpsons-recursive-low-limit
+    peek-list
+    poke-list
+    gsl-minimization
     )
 
   (import
     (chezscheme)
     (cslib utils)
+    (cslib list)
     )
 
   (define pi 3.141592653589793)
@@ -53,7 +57,9 @@
     (/ (exact->inexact x) (exact->inexact y)))
 
   (define atof
-    (when load-libraries (foreign-procedure "atof" (string) double)))
+    (let ()
+      (assert load-libraries)
+      (foreign-procedure "atof" (string) double)))
 
   (define (atofi s)
     (let ([x (atof s)])
@@ -212,5 +218,63 @@
                          (adaptive-simpsons-recursive-low-limit)))])]
          [else (error "adaptive-simpsons" "start end comparison failed")])]))
 
-  ; (
-  )
+  ; -----------------------------------------------------------------------------------------------
+
+  (define (peek-list size type address)
+    (let ([sizeof-type (foreign-sizeof type)] )
+      (map (lambda (i)
+             (foreign-ref type address (* i sizeof-type)))
+           (iota size))))
+
+  (define (poke-list size type address data-list)
+    (let ([sizeof-type (foreign-sizeof type)])
+      (for-each (lambda (i d)
+                  (foreign-set! type address (* i sizeof-type) d))
+                (iota size) data-list)))
+
+  (define gsl-minimization
+    ; input (gsl-minimization f params step-sizes epsabs max-iter)
+    ; return (mini-params mini-epsabs fvalue iter)
+    (let ()
+      (define (make-cs-func f)
+        (lambda (size pointer)
+          (let ([ds (peek-list size
+                               (ftype-pointer-ftype pointer)
+                               (ftype-pointer-address pointer))])
+            (apply f ds))))
+      (define c-mini
+        (foreign-procedure
+          "clib_gsl_mult_minimization_nmsimplex2"
+          (int void* (* double) size_t)
+          size_t))
+      (define (mini c-f params step-sizes epsabs max-iter)
+        (let* ([n-params (length params)]
+               [_ (assert (= n-params (length step-sizes)))]
+               [double-inputs (append params step-sizes (list epsabs 0.0))]
+               [inputs-size (length double-inputs)]
+               [c-double-inputs (foreign-alloc (* inputs-size (foreign-sizeof 'double)))]
+               [_ (poke-list inputs-size 'double c-double-inputs double-inputs)]
+               [iter (c-mini n-params (foreign-callable-entry-point c-f)
+                             (make-ftype-pointer double c-double-inputs) max-iter)]
+               [double-outputs (peek-list inputs-size 'double c-double-inputs)]
+               [_ (foreign-free c-double-inputs)]
+               [mini-params (take n-params double-outputs)]
+               [epsabs-fvalue (drop (* 2 n-params) double-outputs)]
+               [mini-epsabs (list-ref epsabs-fvalue 0)]
+               [fvalue (list-ref epsabs-fvalue 1)])
+          (list mini-params mini-epsabs fvalue iter)))
+      (assert load-libraries)
+      (case-lambda
+        [(f params)
+         (gsl-minimization f params (map (lambda (_) 1.0) params))]
+        [(f params step-sizes)
+         (gsl-minimization f params step-sizes 1.0e-8 10000)]
+        [(f params step-sizes epsabs max-iter)
+         (let* ([c-f (foreign-callable (make-cs-func f) (int (* double)) double)]
+                [_ (lock-object c-f)]
+                [ret (mini c-f params step-sizes epsabs max-iter)]
+                [_ (unlock-object c-f)])
+           ret)])))
+
+; (
+)
