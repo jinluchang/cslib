@@ -5,13 +5,15 @@
 
 extern "C" {
 
+  void clib_minimization_test();
+
   typedef double (*CLIB_GSL_MINIMIZATION_FUNCTION)(const int, const double*);
 
-  void clib_test();
-
-  double my_f_c(const int size, const double* vec);
-
-  void clib_gsl_mult_minimization_nmsimplex2(const CLIB_GSL_MINIMIZATION_FUNCTION f);
+  void clib_gsl_mult_minimization_nmsimplex2(
+      const int n_params,
+      const double* initial_values,
+      const double* initial_steps,
+      const CLIB_GSL_MINIMIZATION_FUNCTION f);
 
 }
 
@@ -27,17 +29,11 @@ double clib_gsl_minimization_function(const gsl_vector* v, void* params)
   return f(size, vec.data());
 }
 
-double my_f_c(const int size, const double* vec)
-{
-  assert(2 == size);
-  double x = vec[0];
-  double y = vec[1];
-  double p[5] = {1.0, 2.0, 10.0, 20.0, 30.0};
-  return p[2] * (x - p[0]) * (x - p[0]) +
-    p[3] * (y - p[1]) * (y - p[1]) + p[4]; 
-}
-
-void clib_gsl_mult_minimization_nmsimplex2(const CLIB_GSL_MINIMIZATION_FUNCTION f)
+void clib_gsl_mult_minimization_nmsimplex2(
+    const int n_params,
+    const double* initial_values,
+    const double* initial_steps,
+    const CLIB_GSL_MINIMIZATION_FUNCTION f)
 {
   double par[5] = {1.0, 2.0, 10.0, 20.0, 30.0};
 
@@ -109,7 +105,7 @@ double my_f(const gsl_vector *v, void *params)
            p[3] * (y - p[1]) * (y - p[1]) + p[4]; 
 }
 
-void clib_test(void)
+void clib_minimization_test()
 {
   double par[5] = {1.0, 2.0, 10.0, 20.0, 30.0};
 
@@ -168,5 +164,3 @@ void clib_test(void)
   gsl_vector_free(ss);
   gsl_multimin_fminimizer_free (s);
 }
-
-
