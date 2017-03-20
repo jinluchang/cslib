@@ -39,6 +39,7 @@
   (import
     (chezscheme)
     (cslib utils)
+    (cslib pmatch)
     (cslib list)
     )
 
@@ -270,11 +271,14 @@
         [(f params step-sizes)
          (gsl-minimization f params step-sizes 1.0e-8 10000)]
         [(f params step-sizes epsabs max-iter)
-         (let* ([c-f (foreign-callable (make-cs-func f) (int (* double)) double)]
-                [_ (lock-object c-f)]
-                [ret (mini c-f params step-sizes epsabs max-iter)]
-                [_ (unlock-object c-f)])
-           ret)])))
+         (pmatch step-sizes
+           [(__ . __)
+            (let* ([c-f (foreign-callable (make-cs-func f) (int (* double)) double)]
+                   [_ (lock-object c-f)]
+                   [ret (mini c-f params step-sizes epsabs max-iter)]
+                   [_ (unlock-object c-f)])
+              ret)]
+           [,s (gsl-minimization f params (map (lambda (_) s) params) epsabs max-iter)])])))
 
 ; (
 )
