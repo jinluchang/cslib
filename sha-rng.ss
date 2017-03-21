@@ -6,7 +6,7 @@
     sizeof-rng-state
     make-rng-state
     get-global-rng-state
-    set-global-rng-state
+    set-global-rng-state!
     rand-gen!
     u-rand-gen!
     g-rand-gen!
@@ -77,6 +77,18 @@
               (clib_set_rng_state_split_string rs rs0 sindex)])
            rs)])))
 
+  (define make-rng-state-type
+    ; (set-rng-state-type! rs type)
+    (let ()
+      (define clib_set_rng_state_type
+        (foreign-procedure "clib_set_rng_state_type"
+                           (u8* unsigned-long) void))
+      (assert load-libraries)
+      (lambda (rs type)
+        (let ([new-rs (make-rng-state rs)])
+          (clib_set_rng_state_type new-rs type)
+          new-rs))))
+
   (define get-global-rng-state
     (let ()
       (define clib_get_global_rng_state
@@ -88,7 +100,7 @@
           (clib_get_global_rng_state rs)
           rs))))
 
-  (define set-global-rng-state
+  (define set-global-rng-state!
     (let ()
       (define clib_set_global_rng_state
         (foreign-procedure "clib_set_global_rng_state"
