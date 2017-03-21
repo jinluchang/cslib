@@ -25,7 +25,7 @@ double clib_gsl_minimization_function(const gsl_vector* v, void* params)
   for (int i = 0; i < size; ++i) {
     vec[i] = gsl_vector_get(v, i);
   }
-  return f(size, vec.data());
+  return f(size * sizeof(double), vec.data());
 }
 
 size_t clib_gsl_mult_minimization_nmsimplex2(

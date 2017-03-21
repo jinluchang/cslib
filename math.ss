@@ -31,8 +31,10 @@
     adaptive-simpsons
     adaptive-simpsons-recursive-limit
     adaptive-simpsons-recursive-low-limit
-    peek-list
-    poke-list
+    peek-bytevector
+    poke-bytevector!
+    double-list->bytevector
+    bytevector->double-list
     gsl-minimization
     )
 
@@ -221,44 +223,62 @@
 
   ; -----------------------------------------------------------------------------------------------
 
-  (define (peek-list size type address)
-    (let ([sizeof-type (foreign-sizeof type)] )
-      (map (lambda (i)
-             (foreign-ref type address (* i sizeof-type)))
-           (iota size))))
+  (define memcpy-bv-uptr
+    (let ()
+      (assert load-libraries)
+      (foreign-procedure "memcpy" (u8* void* size_t) void)))
 
-  (define (poke-list size type address data-list)
-    (let ([sizeof-type (foreign-sizeof type)])
+  (define memcpy-uptr-bv
+    (let ()
+      (assert load-libraries)
+      (foreign-procedure "memcpy" (void* u8* size_t) void)))
+
+  (define (peek-bytevector size address)
+    (let ([bv (make-bytevector size)])
+      (memcpy-bv-uptr bv address size)
+      bv))
+
+  (define (poke-bytevector! size address bv)
+    (assert (<= (bytevector-length bv) size))
+    (memcpy-uptr-bv address bv size))
+
+  (define (bytevector->double-list bv)
+    (let* ([size (bytevector-length bv)]
+           [_ (assert (= 0 (mod size 8)))]
+           [len (/ size 8)])
+      (map (lambda (i)
+             (bytevector-ieee-double-native-ref bv (* 8 i)))
+           (iota len))))
+
+  (define (double-list->bytevector ds)
+    (let* ([len (length ds)]
+           [size (* 8 len)]
+           [bv (make-bytevector size)])
       (for-each (lambda (i d)
-                  (foreign-set! type address (* i sizeof-type) d))
-                (iota size) data-list)))
+                  (bytevector-ieee-double-native-set! bv (* 8 i) d))
+                (iota len) ds)
+      bv))
 
   (define gsl-minimization
     ; input (gsl-minimization f params step-sizes epsabs max-iter)
     ; return (mini-params mini-epsabs fvalue iter)
     (let ()
       (define (make-cs-func f)
-        (lambda (size pointer)
-          (let ([ds (peek-list size
-                               (ftype-pointer-ftype pointer)
-                               (ftype-pointer-address pointer))])
+        (lambda (size address)
+          (let ([ds (bytevector->double-list (peek-bytevector size address))])
             (apply f ds))))
       (define c-mini
         (foreign-procedure
           "clib_gsl_mult_minimization_nmsimplex2"
-          (int void* (* double) size_t)
+          (int void* u8* size_t)
           size_t))
       (define (mini c-f params step-sizes epsabs max-iter)
         (let* ([n-params (length params)]
                [_ (assert (= n-params (length step-sizes)))]
                [double-inputs (append params step-sizes (list epsabs 0.0))]
-               [inputs-size (length double-inputs)]
-               [c-double-inputs (foreign-alloc (* inputs-size (foreign-sizeof 'double)))]
-               [_ (poke-list inputs-size 'double c-double-inputs double-inputs)]
-               [iter (c-mini n-params (foreign-callable-entry-point c-f)
-                             (make-ftype-pointer double c-double-inputs) max-iter)]
-               [double-outputs (peek-list inputs-size 'double c-double-inputs)]
-               [_ (foreign-free c-double-inputs)]
+               [bv (double-list->bytevector double-inputs)]
+               [iter (c-mini n-params (foreign-callable-entry-point c-f) bv max-iter)]
+               [double-outputs (bytevector->double-list bv)]
                [mini-params (take n-params double-outputs)]
                [epsabs-fvalue (drop (* 2 n-params) double-outputs)]
                [mini-epsabs (list-ref epsabs-fvalue 0)]
@@ -273,7 +293,7 @@
         [(f params step-sizes epsabs max-iter)
          (pmatch step-sizes
            [(__ . __)
-            (let* ([c-f (foreign-callable (make-cs-func f) (int (* double)) double)]
+            (let* ([c-f (foreign-callable (make-cs-func f) (int void*) double)]
                    [_ (lock-object c-f)]
                    [ret (mini c-f params step-sizes epsabs max-iter)]
                    [_ (unlock-object c-f)])
