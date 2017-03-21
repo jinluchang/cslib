@@ -7,20 +7,19 @@ extern "C" {
 
   void clib_minimization_test();
 
-  typedef double (*CLIB_GSL_MINIMIZATION_FUNCTION)(const int, const double*);
+  typedef double (*ClibGslMinimizationFunction)(const int, const double*);
 
   size_t clib_gsl_mult_minimization_nmsimplex2(
       const int n_params,
-      const CLIB_GSL_MINIMIZATION_FUNCTION f,
+      const ClibGslMinimizationFunction f,
       double* double_inputs,
       const size_t max_iter);
 
 }
 
-
 double clib_gsl_minimization_function(const gsl_vector* v, void* params)
 {
-  CLIB_GSL_MINIMIZATION_FUNCTION f = (CLIB_GSL_MINIMIZATION_FUNCTION)params;
+  ClibGslMinimizationFunction f = (ClibGslMinimizationFunction)params;
   const int size = v->size;
   std::vector<double> vec(size, 0.0);
   for (int i = 0; i < size; ++i) {
@@ -31,7 +30,7 @@ double clib_gsl_minimization_function(const gsl_vector* v, void* params)
 
 size_t clib_gsl_mult_minimization_nmsimplex2(
     const int n_params,
-    const CLIB_GSL_MINIMIZATION_FUNCTION f,
+    const ClibGslMinimizationFunction f,
     double* double_inputs,
     const size_t max_iter)
 {
