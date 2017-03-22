@@ -11,6 +11,7 @@
     last
     take
     drop
+    list-nref
     intersperse
     mapM
     imap
@@ -58,6 +59,11 @@
       [(<= n 0) xs]
       [(null? xs) xs]
       [(pair? xs) (drop (- n 1) (cdr xs))]))
+
+  (define-syntax list-nref
+    (syntax-rules ()
+      [(_ l i) (list-ref l i)]
+      [(_ l i j ...) (list-nref (list-ref l i) j ...)]))
 
   (define (intersperse x vs)
     (if (null? vs)
