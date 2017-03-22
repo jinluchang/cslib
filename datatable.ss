@@ -57,9 +57,11 @@
     (case-lambda
       [(table) (datatable-pad table (datatable-pad-value))]
       [(table v)
-       (let* ([lens (vector-map vector-length table)]
-              [len (apply max (vector->list lens))])
-         (vector-map (lambda (xs) (vector-pad xs len v)) table))]))
+       (if (= 0 (vector-length table))
+         (vector)
+         (let* ([lens (vector-map vector-length table)]
+                [len (apply max (vector->list lens))])
+           (vector-map (lambda (xs) (vector-pad xs len v)) table)))]))
 
   (define (vector-pad xs len v)
     (let ([n (vector-length xs)])
