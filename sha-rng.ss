@@ -5,6 +5,7 @@
   (export
     sizeof-rng-state
     make-rng-state
+    make-rng-state-type
     get-global-rng-state
     set-global-rng-state!
     rand-gen!
@@ -78,7 +79,7 @@
            rs)])))
 
   (define make-rng-state-type
-    ; (set-rng-state-type! rs type)
+    ; (make-rng-state-type rs type)
     (let ()
       (define clib_set_rng_state_type
         (foreign-procedure "clib_set_rng_state_type"
