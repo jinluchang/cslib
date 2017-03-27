@@ -1,8 +1,10 @@
 #!chezscheme
 
 (library (cslib matrix)
+  ; )
 
   (export
+    vectors-dp-for-each
     make-cmatrix
     parse-cmatrix
     make-cmatrix-id
@@ -29,6 +31,7 @@
 
   (import
     (chezscheme)
+    (cslib debug)
     (cslib utils)
     (cslib vector)
     )
@@ -51,6 +54,20 @@
       (bytevector-ieee-double-native-set! bv idx (real-part c))
       (bytevector-ieee-double-native-set! bv (+ idx 8) (imag-part c))))
 
+  (define-syntax vectors-dp-for-each-partial
+    ; dp stands for direct product
+    (syntax-rules ()
+      [(_ (f ...)) (f ...)]
+      [(_ (f ...) is ijs ...)
+       (vector-for-each (lambda (i)
+                          (vectors-dp-for-each-partial (f ... i) ijs ...))
+                        is)]))
+
+  (define-syntax vectors-dp-for-each
+    ; dp stands for direct product
+    (syntax-rules ()
+      [(_ f ijs ...) (vectors-dp-for-each-partial (f) ijs ...)]))
+
   (define make-cmatrix
     (case-lambda
       [(nrows ncols)
@@ -67,7 +84,20 @@
              (lambda (i j d)
                (cmatrix-set! bv i j d))
              mat)
-           bv))]))
+           bv))]
+      [(nrows ncols double-vector)
+       (let* ([is (list->vector (iota nrows))]
+              [js (list->vector (iota ncols))]
+              [bv (make-cmatrix nrows ncols)])
+         (vectors-dp-for-each
+           (lambda (i j)
+             (cmatrix-set!
+               bv i j
+               (make-rectangular
+                 (vector-ref double-vector (* 2 (+ (* ncols i) j)))
+                 (vector-ref double-vector (inc (* 2 (+ (* ncols i) j)))))))
+           is js)
+         bv)]))
 
   (define (parse-cmatrix bv)
     (if (number? bv) bv
@@ -193,6 +223,26 @@
           (inv ret x)
           ret))))
 
+  (define (cmatrix-kronecker-product x y)
+    (let* ([xn (cmatrix-nrows x)]
+           [xm (cmatrix-ncols x)]
+           [yn (cmatrix-nrows y)]
+           [ym (cmatrix-ncols y)]
+           [n (* xn yn)]
+           [m (* xm ym)]
+           [z (make-cmatrix n m)]
+           [xis (list->vector (iota xn))]
+           [xjs (list->vector (iota xm))]
+           [yis (list->vector (iota yn))]
+           [yjs (list->vector (iota ym))])
+      (vectors-dp-for-each
+        (lambda (xi xj yi yj)
+          (let* ([i (+ (* xi yn) yi)]
+                 [j (+ (* xj ym) yj)])
+            (cmatrix-set! z i j (* (cmatrix-ref x xi xj) (cmatrix-ref y yi yj)))))
+        xis xjs yis yjs)
+      z))
+
   (define (matrix-nrows m)
     (vector-length m))
 
@@ -230,4 +280,5 @@
       [(m)
        (make-matrix-id m 1.0+0.0i)]))
 
+  ; (
   )
