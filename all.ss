@@ -17,6 +17,7 @@
     (import (cslib list))
     (import (cslib string))
     (import (cslib vector))
+    (import (cslib matrix))
     (import (cslib function))
     (import (cslib math))
     (import (cslib path))
