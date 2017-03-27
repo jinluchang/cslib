@@ -19,6 +19,7 @@
 
   (import
     (chezscheme)
+    (cslib utils)
     (cslib vector)
     (cslib string)
     (cslib math)

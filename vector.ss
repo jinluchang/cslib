@@ -30,7 +30,7 @@
 
   (import
     (chezscheme)
-    (cslib math)
+    (cslib utils)
     )
 
   (define (vector-setf! vec n f)

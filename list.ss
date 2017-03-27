@@ -11,6 +11,7 @@
     last
     take
     drop
+    take-drop
     list-nref
     intersperse
     mapM
@@ -24,6 +25,7 @@
 
   (import
     (chezscheme)
+    (cslib utils)
     (cslib function)
     )
 
@@ -59,6 +61,14 @@
       [(<= n 0) xs]
       [(null? xs) xs]
       [(pair? xs) (drop (- n 1) (cdr xs))]))
+
+  (define (take-drop n xs)
+    (cond
+      [(null? xs) (cons xs xs)]
+      [(<= n 0) (cons '() xs)]
+      [(pair? xs)
+       (let ([p (take-drop (dec n) (cdr xs))])
+         (cons (cons (car xs) (car p)) (cdr p)))]))
 
   (define-syntax list-nref
     (syntax-rules ()

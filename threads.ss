@@ -23,7 +23,7 @@
 
   (import
     (chezscheme)
-    (cslib math)
+    (cslib utils)
     (cslib function)
     (cslib path)
     (cslib list)

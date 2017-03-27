@@ -24,8 +24,8 @@
 
   (import
     (chezscheme)
+    (cslib utils)
     (cslib list)
-    (cslib math)
     )
 
   (define (string-split-p str sep-char?)
