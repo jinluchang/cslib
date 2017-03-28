@@ -17,6 +17,8 @@
     cmatrix*
     cmatrix-neg
     cmatrix-inv
+    cmatrix-trace
+    cmatrix-kronecker-product
     make-matrix-id
     matrix-nrows
     matrix-ncols
@@ -223,6 +225,20 @@
           (inv ret x)
           ret))))
 
+  (define cmatrix-trace
+    (let ()
+      (define inv
+        (foreign-procedure
+          "clib_matrix_trace"
+          (u8* u8*)
+          void))
+      (assert load-libraries)
+      (lambda (x)
+        (let* ([ret (make-bytevector 16)])
+          (inv ret x)
+          (make-rectangular (bytevector-ieee-double-native-ref ret 0)
+                            (bytevector-ieee-double-native-ref ret 8))))))
+
   (define (cmatrix-kronecker-product x y)
     (let* ([xn (cmatrix-nrows x)]
            [xm (cmatrix-ncols x)]
@@ -279,6 +295,9 @@
          (parse-cmatrix bv))]
       [(m)
        (make-matrix-id m 1.0+0.0i)]))
+
+  (define (matrix-kronecker-product x y)
+    (parse-cmatrix (cmatrix-kronecker-product (make-cmatrix x) (make-cmatrix y))))
 
   ; (
   )

@@ -26,6 +26,7 @@
     (import (cslib coordinate))
     (import (cslib constants))
     (import (cslib sha-rng))
+    (import (cslib special-matrix))
     )
 
   )

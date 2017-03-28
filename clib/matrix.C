@@ -15,6 +15,8 @@ extern "C" {
 
   void clib_matrix_inverse(char* ret, const char* x);
 
+  void clib_matrix_trace(char* ret, const char* x);
+
 }
 
 using namespace Eigen;
@@ -81,4 +83,10 @@ void clib_matrix_negate(char* ret, const char* x)
 void clib_matrix_inverse(char* ret, const char* x)
 {
   clib_set_matrix(ret, clib_make_matrix(x).inverse());
+}
+
+void clib_matrix_trace(char* ret, const char* x)
+{
+  Complex& c = *(Complex*)ret;
+  c = clib_make_matrix(x).trace();
 }
