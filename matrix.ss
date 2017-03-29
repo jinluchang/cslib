@@ -15,7 +15,6 @@
     cmatrix+
     cmatrix-
     cmatrix*
-    cmatrix-neg
     cmatrix-inv
     cmatrix-trace
     cmatrix-kronecker-product
@@ -27,7 +26,6 @@
     matrix+
     matrix-
     matrix*
-    matrix-neg
     matrix-inv
     )
 
@@ -151,8 +149,19 @@
           "clib_matrix_minus"
           (u8* u8* u8*)
           void))
+      (define neg
+        (foreign-procedure
+          "clib_matrix_negate"
+          (u8* u8*)
+          void))
       (assert load-libraries)
       (case-lambda
+        [(x)
+         (let* ([nrows (cmatrix-nrows x)]
+                [ncols (cmatrix-ncols x)]
+                [ret (make-cmatrix nrows ncols)])
+           (neg ret x)
+           ret)]
         [(x y)
          (let* ([nrows (cmatrix-nrows x)]
                 [ncols (cmatrix-ncols x)]
@@ -195,20 +204,6 @@
         [(x . xs)
          (fold-left cmatrix* x xs)])))
 
-  (define cmatrix-neg
-    (let ()
-      (define neg
-        (foreign-procedure
-          "clib_matrix_negate"
-          (u8* u8*)
-          void))
-      (assert load-libraries)
-      (lambda (x)
-        (let* ([nrows (cmatrix-nrows x)]
-               [ncols (cmatrix-ncols x)]
-               [ret (make-cmatrix nrows ncols)])
-          (neg ret x)
-          ret))))
 
   (define cmatrix-inv
     (let ()
@@ -279,9 +274,6 @@
 
   (define (matrix* . xs)
     (parse-cmatrix (apply cmatrix* (map make-cmatrix xs))))
-
-  (define (matrix-neg x)
-    (parse-cmatrix (cmatrix-neg (make-cmatrix x))))
 
   (define (matrix-inv x)
     (parse-cmatrix (cmatrix-inv (make-cmatrix x))))

@@ -69,7 +69,7 @@
   (define gamma-cps
     (let ()
       (define gammas
-        (vector (cmatrix-neg (gamma 0)) (gamma 1) (cmatrix-neg (gamma 2)) (gamma 3)))
+        (vector (cmatrix- (gamma 0)) (gamma 1) (cmatrix- (gamma 2)) (gamma 3)))
       (case-lambda
         [() gammas]
         [(mu) (vector-ref gammas mu)])))
