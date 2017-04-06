@@ -6,6 +6,7 @@
     load-libraries
     inc
     dec
+    with-values
     )
 
   (import
@@ -23,5 +24,10 @@
 
   (define (dec x)
     (- x 1))
+
+  (define-syntax with-values
+    (syntax-rules ()
+      [(_ expr consumer)
+       (call-with-values (lambda () expr) consumer)]))
 
   )
