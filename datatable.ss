@@ -20,6 +20,7 @@
 
   (import
     (chezscheme)
+    (cslib debug)
     (cslib string)
     )
 
@@ -43,12 +44,7 @@
     (define (finalize-lines lines)
       (datatable-pad (list->vector lines)))
     (finalize-lines
-      (let loop ()
-        (let ([line (get-line port)])
-          (cond
-            [(eof-object? line) '()]
-            [(comment? line) (loop)]
-            [else (cons (fl line) (loop))])))))
+      (map fl (remp comment? (get-lines port)))))
 
   (define datatable-pad-value
     (make-parameter #f))

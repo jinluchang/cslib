@@ -37,7 +37,7 @@
   ;        ()    -- matches the empty list
 
   (define-syntax pmatch
-    (syntax-rules (else guard)
+    (syntax-rules (else guard __)
       [(_ (rator rand ...) cs ...)
        (let ([v (rator rand ...)])
          (pmatch v cs ...))]
