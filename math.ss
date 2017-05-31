@@ -27,6 +27,8 @@
     ve-
     average
     std-deviation
+    average-sigma
+    jackknife-sigma
     bisect-search
     adaptive-simpsons
     adaptive-simpsons-recursive-limit
@@ -144,7 +146,19 @@
       (if (null? (cdr xs)) (car xs)
         (let ([len (length xs)]
               [avg (apply average xs)])
-          (sqrt (apply average (map (lambda (x) (sqr (abs (- x avg)))) xs)))))))
+          (sqrt (/ (apply + (map (lambda (x) (sqr (abs (- x avg))))
+                                 xs))
+                   (dec len)))))))
+
+  (define (average-sigma . xs)
+    (if (null? xs) 0
+      (let ([len (length xs)])
+        (/ (apply std-deviation xs) (sqrt len)))))
+
+  (define (jackknife-sigma . xs)
+    (if (null? xs) 0
+      (let ([len (length xs)])
+        (* (dec len) (apply std-deviation xs) (sqrt len)))))
 
   ; -----------------------------------------------------------------------------------------------
 
