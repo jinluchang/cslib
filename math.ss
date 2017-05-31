@@ -25,6 +25,8 @@
     make-ve-avg
     ve+
     ve-
+    average
+    std-deviation
     bisect-search
     adaptive-simpsons
     adaptive-simpsons-recursive-limit
@@ -129,6 +131,20 @@
 
   (define (ve- . ves)
     (make-ve (apply - (map car ves)) (apply err+ (map cdr ves))))
+
+
+  ; -----------------------------------------------------------------------------------------------
+
+  (define (average . xs)
+    (if (null? xs) 0
+      (/ (apply + xs) (length xs))))
+
+  (define (std-deviation . xs)
+    (if (null? xs) 0
+      (if (null? (cdr xs)) (car xs)
+        (let ([len (length xs)]
+              [avg (apply average xs)])
+          (sqrt (apply average (map (lambda (x) (sqr (abs (- x avg)))) xs)))))))
 
   ; -----------------------------------------------------------------------------------------------
 
