@@ -16,18 +16,49 @@
     datatable-pad-value
     datatable-pad
     vector-pad
+    show-vector-line
+    read-vector-line
     )
 
   (import
     (chezscheme)
     (cslib debug)
     (cslib string)
+    (cslib pmatch)
+    (cslib utils)
     )
 
   (define (datatable? table)
     (and (vector? table)
          (< 0 (vector-length table))
          (vector? (vector-ref table 0))))
+
+  (define (show-vector-line v)
+    (define (show-number x)
+      (if (real? x) (number->string x)
+        (string-append (number->string (real-part x)) " " (number->string (imag-part x)) "i")))
+    (unwords (map show-number (vector->list v))))
+
+  (define (read-vector-line s)
+    (define (read-number n)
+      (let ([len (string-length n)])
+        (if (string-suffix? "i" n)
+          (make-rectangular 0 (exact->inexact (string->number (substring n 0 (dec len)))))
+          (string->number n))))
+    (define (combine xs)
+      (pmatch xs
+        [() (list)]
+        [(,x) (guard (real? x)) (list x)]
+        [(,x ,y . ,rs)
+         (guard (real? x) (not (real? y)))
+         (cons (+ x y) (combine rs))]
+        [(,x ,y . ,rs)
+         (guard (real? x) (real? y))
+         (cons x (combine (cons y rs)))]
+        [else
+          (print "warning combine" xs)
+          xs]))
+    (list->vector (combine (map read-number (words s)))))
 
   (define (get-lines port) ; port is a input-port
     (let loop ()
@@ -38,7 +69,9 @@
 
   (define (get-datatable port) ; port is a input-port
     (define (fl line)
-      (vector-map string->number (list->vector (words line))))
+      ; (vector-map string->number (list->vector (words line)))
+      (read-vector-line line)
+      )
     (define (comment? line)
       (eqv? #\# (string-ref line 0)))
     (define (finalize-lines lines)
@@ -86,7 +119,10 @@
 
   (define (put-datatable port table) ; port is a output-port
     (define (fl xs)
-      (put-string port (unwords (vector->list (vector-map number->string xs))))
+      (put-string port
+                  ; (unwords (vector->list (vector-map number->string xs)))
+                  (show-vector-line xs)
+                  )
       (newline port))
     (vector-for-each fl table))
 

@@ -31,8 +31,8 @@
     (cslib string)
     )
 
-  (define (scpath-split path)
-    (string-split path "/" " ; "))
+  (define (scpath-split path . suffixs)
+    (string-split (apply string-drop-suffix path suffixs) "/" " ; "))
 
   (define (sclist-filter property sclist)
     (define (f value)
@@ -49,7 +49,7 @@
       (if (eq? #f str) default (f str))))
 
   (define (make-scpair path . suffixs)
-    (cons path (scpath-split (apply string-drop-suffix path suffixs))))
+    (cons path (apply scpath-split path suffixs)))
 
   (define (scpair-find default property scpair)
     (sclist-find default property (cdr scpair)))
