@@ -150,11 +150,17 @@
       (/ (apply + xs) (length xs))))
 
   (define (std-deviation . xs)
+    (define (cop op x)
+      (cond
+        [(real? x) (op x)]
+        [(complex? x) (make-rectangular
+                        (op (real-part x))
+                        (op (imag-part x)))]))
     (if (null? xs) 0
       (if (null? (cdr xs)) (car xs)
         (let ([len (length xs)]
               [avg (apply average xs)])
-          (sqrt (/ (apply + (map (lambda (x) (sqr (abs (- x avg))))
+          (cop sqrt (/ (apply + (map (lambda (x) (cop sqr (- x avg)))
                                  xs))
                    (dec len)))))))
 
