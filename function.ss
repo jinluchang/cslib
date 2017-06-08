@@ -11,6 +11,8 @@
     =?
     number-cmp
     string-cmp
+    curry
+    curry-1
     )
 
   (import
@@ -83,5 +85,19 @@
 
   (define (=? x y)
     (eq? (cmp x y) 'eq))
+
+  (define curry
+    (case-lambda
+      [(f) f]
+      [(f x) (lambda rs (apply f x rs))]
+      [(f x y) (lambda rs (apply f x y rs))]
+      [(f x y z) (lambda rs (apply f x y z rs))]))
+
+  (define curry-1
+    (case-lambda
+      [(f) f]
+      [(f x) (lambda (r) (f x r))]
+      [(f x y) (lambda (r) (f x y r))]
+      [(f x y z) (lambda (r) (f x y z r))]))
 
   )

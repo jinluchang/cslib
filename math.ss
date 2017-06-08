@@ -9,22 +9,8 @@
     ratio
     atof
     atofi
+    make-seq
     fib
-    make-ss
-    ss-acc
-    ss-scale
-    ss+
-    ss-
-    make-ve
-    err+
-    val-err-0-sample
-    val-err-1-sample
-    val-err
-    ve-scale
-    ve-inverse
-    make-ve-avg
-    ve+
-    ve-
     average
     std-deviation
     average-sigma
@@ -45,6 +31,22 @@
     double-list->bytevector
     bytevector->double-list
     gsl-minimization
+    ;
+    make-ss
+    ss-acc
+    ss-scale
+    ss+
+    ss-
+    make-ve
+    err+
+    val-err-0-sample
+    val-err-1-sample
+    val-err
+    ve-scale
+    ve-inverse
+    make-ve-avg
+    ve+
+    ve-
     )
 
   (import
@@ -78,6 +80,18 @@
   (define (fib n)
     (if (<= n 1) n
       (+ (fib (- n 1)) (fib (- n 2)))))
+
+  (define make-seq
+    (case-lambda
+      [(start end sep)
+       (let ([send (+ end (* 0.5 sep))])
+         (let loop ([v start])
+           (if (>= v send) (list)
+             (cons v (loop (+ v sep))))))]
+      [(start end)
+       (make-seq start end 1)]
+      [(end)
+       (make-seq 0 end)]))
 
   ; -----------------------------------------------------------------------------------------------
 
