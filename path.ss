@@ -22,6 +22,7 @@
     mkdir-p
     save-fasl-obj
     load-fasl-obj
+    load-or-compute
     )
 
   (import
@@ -120,5 +121,12 @@
   (define (load-fasl-obj path)
     (if (not (file-regular? path)) #f
       (call-with-port (open-file-input-port path) fasl-read)))
+
+  (define (load-or-compute path thunk)
+    (let ([result (load-fasl-obj path)])
+      (if (not (eq? result #f)) result
+        (let ([result (thunk)])
+          (save-fasl-obj path result)
+          result))))
 
   )
