@@ -113,7 +113,9 @@
 
   (define (save-fasl-obj path obj)
     (mkdir-p (path-parent path))
-    (call-with-port (open-file-output-port path (file-options no-fail)) (lambda (p) (fasl-write obj p))))
+    (let ([tpath (string-append path ".partial")])
+      (call-with-port (open-file-output-port tpath (file-options no-fail)) (lambda (p) (fasl-write obj p)))
+      (rename-file tpath path)))
 
   (define (load-fasl-obj path)
     (if (not (file-regular? path)) #f

@@ -8,6 +8,8 @@
     wait-pid
     fork-exec
     wait-all
+    fork-limit
+    fork-for-each
     )
 
   (import
@@ -38,6 +40,29 @@
   (define (wait-all)
     (when (> (wait-pid) 0)
       (wait-all)))
+
+  (define fork-limit
+    (make-parameter 8))
+
+  (define (fork-for-each f l . ls)
+    (define np-limit (fork-limit))
+    (if (= np-limit 1)
+      (apply f l ls)
+      (let ([vs (apply map list l ls)]
+            [ht (make-eqv-hashtable)])
+        (let loop ([np 0]
+                   [jobs vs])
+          (if (null? jobs)
+            (for-each wait-pid (vector->list (hashtable-keys ht)))
+            (if (>= np np-limit)
+              (begin
+                (hashtable-delete! ht (wait-pid))
+                (loop (dec np) jobs))
+              (begin
+                (hashtable-set! ht (fork-exec (apply f (car jobs))) #t)
+                (loop (inc np) (cdr jobs))))
+            ))
+        (void))))
 
   ; (
   )

@@ -6,6 +6,7 @@
   (export
     make-equal-hashtable
     hashtable-items
+    hashtable-pairs
     )
 
   (import
@@ -19,6 +20,10 @@
   (define (hashtable-items hashtable)
     (with-values (hashtable-entries hashtable)
                  (lambda (ks es) es)))
+
+  (define (hashtable-pairs hashtable)
+    (with-values (hashtable-entries hashtable)
+                 (lambda (ks es) (vector-map cons ks es))))
 
   ; (
   )
