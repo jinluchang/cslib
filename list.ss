@@ -21,6 +21,8 @@
     list-group
     list-gsort
     alist-gsort
+    flip-map
+    flip-for-each
     )
 
   (import
@@ -134,5 +136,15 @@
     (map (lambda (ps)
            (cons (caar ps) (map cdr ps)))
          (list-gsort (on = car) (on < car) pairs)))
+
+  (define (flip-map l . lsf)
+    (let ([f (last lsf)]
+          [ls (init lsf)])
+      (apply map f l ls)))
+
+  (define (flip-for-each l . lsf)
+    (let ([f (last lsf)]
+          [ls (init lsf)])
+      (apply for-each f l ls)))
 
   )
