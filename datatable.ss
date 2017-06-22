@@ -18,6 +18,8 @@
     vector-pad
     show-vector-line
     read-vector-line
+    datatable->table
+    table->datatable
     )
 
   (import
@@ -32,6 +34,12 @@
     (and (vector? table)
          (< 0 (vector-length table))
          (vector? (vector-ref table 0))))
+
+  (define (datatable->table dt)
+    (map vector->list (vector->list dt)))
+
+  (define (table->datatable t)
+    (list->vector (map list->vector t)))
 
   (define (show-vector-line v)
     (define (show-number x)
