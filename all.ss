@@ -30,6 +30,7 @@
     (import (cslib special-matrix))
     (import (cslib fork))
     (import (cslib io))
+    (import (cslib special-function))
     )
 
   )
