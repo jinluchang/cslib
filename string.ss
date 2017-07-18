@@ -118,10 +118,12 @@
           (substring s 0 (- (string-length s) (string-length suffix)))
           s)))
     (define drop-many
-      (lambda (s suffixes)
+      (lambda (s rs)
         (cond
-          [(null? suffixes) s]
-          [else (drop-many (drop-one s (car suffixes)) (cdr suffixes))])))
+          [(null? rs) s]
+          [(string-suffix? (car rs) s)
+           (drop-many (drop-one s (car rs)) suffixes)]
+          [else (drop-many s (cdr rs))])))
     (drop-many s suffixes))
 
   (define (string-split s . seps)

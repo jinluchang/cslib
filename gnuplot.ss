@@ -22,8 +22,12 @@
   (define (mkdtemp template)
     (get-line (list-ref (process (string-append "mktemp -d -p /tmp " (escape template))) 0)))
 
-  (define (make-gnuplot-dir)
-    (mkdtemp "cslib-gnuplot-XXXX"))
+  (define (make-gnuplot-dir wd fn)
+    (if (eq? fn #f) (mkdtemp "cslib-gnuplot-XXXX")
+      (let ([tdir (filepath-append wd (string-append (string-drop-suffix fn ".pdf" ".eps") ".cslib-plot-dir"))])
+        (delete-recursive tdir)
+        (mkdir-p tdir)
+        tdir)))
 
   (define (make-mp-to-eps-script tdir fn)
     (define strs
@@ -62,8 +66,8 @@
       (save-datatable (cdr p) (filepath-append tdir (car p))))
     (for-each save-pair pairs))
 
-  (define (make-plot wd . cmds)
-    (let ([tdir (make-gnuplot-dir)])
+  (define (make-plot wd fn . cmds)
+    (let ([tdir (make-gnuplot-dir wd fn)])
       (make-mp-to-eps-script tdir "convert.sh")
       (make-gnuplot-script tdir "plotfile" cmds)
       (save-gnuplot-datatables tdir cmds)
@@ -74,7 +78,7 @@
 
   (define (plot-save wd fn . cmds)
     (let ([wd (if (string=? wd "") "." wd)]
-          [tdir (apply make-plot wd cmds)])
+          [tdir (apply make-plot wd fn cmds)])
       (cond
         [(or (string-suffix? ".eps.pdf" fn) (string-suffix? ".pdf.eps" fn))
          (system (format "epstopdf ~a/plot-0.eps --outfile=~a/plot-0.pdf ; mv ~a/plot-0.pdf ~s/~s.pdf"
@@ -91,7 +95,7 @@
 
   (define (plot-view wd . cmds)
     (let ([wd (if (string=? wd "") "." wd)]
-          [tdir (apply make-plot wd cmds)])
+          [tdir (apply make-plot wd #f cmds)])
       (system (format "epstopdf ~a/plot-0.eps --outfile=~a/plot-0.pdf" tdir tdir))
       (system (format "evince ~a/plot-0.pdf >>~a/log 2>&1 &" tdir tdir)))
     (void))

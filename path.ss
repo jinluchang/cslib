@@ -18,6 +18,7 @@
     directory-nonempty?
     directory-list-paths
     directory-list-directory-paths
+    delete-recursive
     with-cd
     mkdir-p
     save-fasl-obj
@@ -30,6 +31,7 @@
     (cslib function)
     (cslib list)
     (cslib string)
+    (cslib utils)
     )
 
   (define (scpath-split path . suffixs)
@@ -96,6 +98,15 @@
   (define (directory-list-directory-paths path)
     (let ([files (directory-list-paths path)])
       (filter file-directory? files)))
+
+  (define (delete-recursive path)
+    (let ([paths (directory-list-paths path)])
+      (with-values
+        (partition file-directory? paths)
+        (lambda (dirs files)
+          (for-each delete-file files)
+          (for-each delete-recursive dirs)))
+      (delete-directory path)))
 
   (define (mkdir-p path)
     (cond
