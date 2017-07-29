@@ -30,6 +30,10 @@
         (mkdir-p wd-tdir)
         tdir)))
 
+  (define (make-wd-tdir wd tdir)
+    (if (eqv? #\/ (string-ref tdir 0)) tdir
+      (filepath-append wd tdir)))
+
   (define (make-mp-to-eps-script wd tdir fn)
     (define strs
       (list
@@ -43,7 +47,7 @@
         "mv \"$i\" \"$fn\"-\"${i#mpost-job.}\".eps"
         "done"
         "done"))
-    (with-output-to-file (filepath-append wd tdir fn) (lambda () (for-each display-string-ln strs)) 'truncate))
+    (with-output-to-file (filepath-append (make-wd-tdir wd tdir) fn) (lambda () (for-each display-string-ln strs)) 'truncate))
 
   (define (make-gnuplot-script wd tdir fn cmds)
     (define datatable-filenames
@@ -58,7 +62,7 @@
           "set term mp color latex prologues 3 amstex"
           (format "set output '~a/plot.mp'" (escape tdir)))
         (map fix-cmd-path (filter string? cmds))))
-    (with-output-to-file (filepath-append wd tdir fn) (lambda () (for-each display-string-ln strs)) 'truncate))
+    (with-output-to-file (filepath-append (make-wd-tdir wd tdir) fn) (lambda () (for-each display-string-ln strs)) 'truncate))
 
   (define (save-gnuplot-datatables wd-tdir cmds)
     (define pairs
@@ -69,7 +73,7 @@
 
   (define (make-plot wd fn . cmds)
     (let* ([tdir (make-gnuplot-dir wd fn)]
-           [wd-tdir (filepath-append wd tdir)])
+           [wd-tdir (make-wd-tdir wd tdir)])
       (make-mp-to-eps-script wd tdir "convert.sh")
       (make-gnuplot-script wd tdir "plotfile" cmds)
       (save-gnuplot-datatables wd-tdir cmds)
