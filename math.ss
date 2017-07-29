@@ -22,6 +22,7 @@
     tree-
     tree*
     tree-average
+    jackknife
     bisect-search
     adaptive-simpsons
     adaptive-simpsons-recursive-limit
