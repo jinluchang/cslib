@@ -22,6 +22,7 @@
     tree-
     tree*
     tree-average
+    j-average
     jackknife
     bisect-search
     adaptive-simpsons
@@ -239,6 +240,9 @@
 
   (define (tree-average . ts)
     (apply tree-op average ts))
+
+  (define (j-average + * samples)
+    (* (/ 1.0 (length samples)) (apply + samples)))
 
   (define (jackknife + - * samples)
     (let* ([len (length samples)]

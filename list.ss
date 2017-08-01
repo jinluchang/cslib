@@ -12,6 +12,7 @@
     take
     drop
     take-drop
+    block-list
     list-nref
     intersperse
     mapM
@@ -29,6 +30,7 @@
     (chezscheme)
     (cslib utils)
     (cslib function)
+    (cslib pmatch)
     )
 
   (define (setf-car! p f)
@@ -71,6 +73,15 @@
       [(pair? xs)
        (let ([p (take-drop (dec n) (cdr xs))])
          (cons (cons (car xs) (car p)) (cdr p)))]))
+
+  (define (block-list n xs)
+    ; n is the size of an individual block
+    (let loop ([xs xs])
+      (pmatch (take-drop n xs)
+        [(,b . ,rs)
+         (if (or (pair? rs) (= n (length b)))
+           (cons b (loop rs))
+           (list))])))
 
   (define-syntax list-nref
     (syntax-rules ()
