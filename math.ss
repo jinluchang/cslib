@@ -201,22 +201,32 @@
   (define (tag-pair? x)
     (and (pair? x) (eq? 'tag (car x))))
 
-  (define (tree-op op . ts)
-    (define (top . ts)
-      (apply tree-op op ts))
+  (define (atom-pair? x)
+    (and (pair? x) (eq? 'atom (car x))))
+
+  (define (tree-op op . ats)
+    (define (top . ats)
+      (apply tree-op op ats))
+    (define ts (remp (lambda (v) (eq? 'empty v)) ats))
     (cond
-      [(null? ts)
+      [(null? ats)
        (list)]
+      [(null? ts)
+       'empty]
       [(and (for-all number? ts) (for-all inexact? ts))
        (apply op ts)]
       [(and (for-all number? ts) (for-all exact? ts) (all-same = ts))
        (car ts)]
       [(and (for-all symbol? ts) (all-same eq? ts))
        (car ts)]
+      [(and (for-all boolean? ts) (all-same eq? ts))
+       (car ts)]
       [(and (for-all string? ts) (all-same string=? ts))
        (car ts)]
       [(for-all tag-pair? ts)
        (car ts)]
+      [(for-all atom-pair? ts)
+       (apply op ts)]
       [(for-all list? ts)
        (apply map top ts)]
       [(for-all vector? ts)

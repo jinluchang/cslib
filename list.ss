@@ -23,6 +23,7 @@
     list-gsort
     alist-gsort
     flip-map
+    flip-mapM
     flip-for-each
     )
 
@@ -152,6 +153,11 @@
     (let ([f (last lsf)]
           [ls (init lsf)])
       (apply map f l ls)))
+
+  (define (flip-mapM l . lsf)
+    (let ([f (last lsf)]
+          [ls (init lsf)])
+      (apply mapM f l ls)))
 
   (define (flip-for-each l . lsf)
     (let ([f (last lsf)]

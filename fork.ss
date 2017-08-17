@@ -10,11 +10,13 @@
     wait-all
     fork-limit
     fork-for-each
+    flip-fork-for-each
     )
 
   (import
     (chezscheme)
     (cslib utils)
+    (cslib list)
     )
 
   (define fork
@@ -63,6 +65,11 @@
                 (loop (inc np) (cdr jobs))))
             ))
         (void))))
+
+  (define (flip-fork-for-each . lsf)
+    (let ([f (last lsf)]
+          [ls (init lsf)])
+      (apply fork-for-each f ls)))
 
   ; (
   )
