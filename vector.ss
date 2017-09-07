@@ -11,6 +11,7 @@
     vector-imap
     vector-i-for-each
     vector-filter
+    vector-cons
     vector-head
     vector-last
     vector-take
@@ -61,6 +62,9 @@
 
   (define (vector-filter f v)
     (list->vector (filter f (vector->list v))))
+
+  (define (vector-cons x v)
+    (list->vector (cons x (vector->list v))))
 
   (define (vector-head vec)
     (vector-ref vec 0))
