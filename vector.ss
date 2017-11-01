@@ -14,6 +14,8 @@
     vector-cons
     vector-head
     vector-last
+    vector-init
+    vector-tail
     vector-take
     vector-drop
     vector-sum
@@ -68,6 +70,12 @@
 
   (define (vector-head vec)
     (vector-ref vec 0))
+
+  (define (vector-tail vec)
+    (subvector vec 1 (vector-length vec)))
+
+  (define (vector-init vec)
+    (subvector vec 0 (dec (vector-length vec))))
 
   (define (vector-last vec)
     (vector-ref vec (dec (vector-length vec))))
