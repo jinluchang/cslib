@@ -11,6 +11,8 @@
     last
     take
     drop
+    select
+    flip-select
     take-drop
     block-list
     list-nref
@@ -51,6 +53,12 @@
                [rs (cdr xs)])
       (if (not (pair? rs)) rs
         (cons x (loop (car rs) (cdr rs))))))
+
+  (define (select l . idxs)
+    (map (lambda (i) (list-ref l i)) idxs))
+
+  (define (flip-select . idxs-l)
+    (apply select (last idxs-l) (init idxs-l)))
 
   (define (last xs)
     (car (last-pair xs)))

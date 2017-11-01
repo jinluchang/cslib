@@ -16,6 +16,8 @@
     vector-last
     vector-init
     vector-tail
+    vector-select
+    flip-vector-select
     vector-take
     vector-drop
     vector-sum
@@ -79,6 +81,12 @@
 
   (define (vector-last vec)
     (vector-ref vec (dec (vector-length vec))))
+
+  (define (vector-select v . idxs)
+    (list->vector (map (lambda (i) (vector-ref v i)) idxs)))
+
+  (define (flip-vector-select . idxs-v)
+    (apply vector-select (vector-last idxs-v) (vector-init idxs-v)))
 
   (define (vector-take n xs)
     (let ([len (vector-length xs)])
