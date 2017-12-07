@@ -49,7 +49,7 @@
   (define (fork-for-each f l . ls)
     (define np-limit (fork-limit))
     (if (= np-limit 1)
-      (apply f l ls)
+      (apply for-each f l ls)
       (let ([vs (apply map list l ls)]
             [ht (make-eqv-hashtable)])
         (let loop ([np 0]

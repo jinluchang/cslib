@@ -4,8 +4,9 @@
 
   (export
     datatable?
-    get-datatable
     get-lines
+    lines->datatable
+    get-datatable
     load-datatable
     load-lines
     read-datatable
@@ -75,7 +76,7 @@
           [(eof-object? line) '()]
           [else (cons line (loop))]))))
 
-  (define (get-datatable port) ; port is a input-port
+  (define (lines->datatable lines)
     (define (fl line)
       ; (vector-map string->number (list->vector (words line)))
       (read-vector-line line)
@@ -85,7 +86,10 @@
     (define (finalize-lines lines)
       (datatable-pad (list->vector lines)))
     (finalize-lines
-      (map fl (remp comment? (get-lines port)))))
+      (map fl (remp comment? lines))))
+
+  (define (get-datatable port) ; port is a input-port
+    (lines->datatable (get-lines port)))
 
   (define datatable-pad-value
     (make-parameter #f))
@@ -117,10 +121,7 @@
       lines))
 
   (define (load-datatable path)
-    (let* ([p (open-input-file path)]
-           [table (get-datatable p)])
-      (close-input-port p)
-      table))
+    (lines->datatable (load-lines path)))
 
   (define (read-datatable str)
     (get-datatable (open-string-input-port str)))

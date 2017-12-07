@@ -13,6 +13,7 @@
     string-search
     string-search-char
     string-drop-suffix
+    string-drop-prefix
     string-split
     string-replace-all
     take-string
@@ -125,6 +126,21 @@
            (drop-many (drop-one s (car rs)) suffixes)]
           [else (drop-many s (cdr rs))])))
     (drop-many s suffixes))
+
+  (define (string-drop-prefix s . prefixes)
+    (define drop-one
+      (lambda (s prefix)
+        (if (string-prefix? prefix s)
+          (substring s (string-length prefix) (string-length s))
+          s)))
+    (define drop-many
+      (lambda (s rs)
+        (cond
+          [(null? rs) s]
+          [(string-prefix? (car rs) s)
+           (drop-many (drop-one s (car rs)) prefixes)]
+          [else (drop-many s (cdr rs))])))
+    (drop-many s prefixes))
 
   (define (string-split s . seps)
     (define split-one

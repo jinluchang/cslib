@@ -31,10 +31,10 @@
   (define (make-origin dim)
     (make-vector dim 0))
 
-  (define (string->coordinate str)
-    (let* ([len (string-length str)]
-           [cstr (substring str 1 (dec len))])
-      (list->vector (map string->number (string-split cstr ",")))))
+  (define (string->coordinate str-coord)
+    (let* ([str (string-drop-suffix (string-drop-prefix str-coord " " "(") " " ")")]
+           [ss (string-split str "x")])
+      (list->vector (map string->number ss))))
 
   (define coordinate-dimension
     (case-lambda
