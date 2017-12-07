@@ -6,6 +6,7 @@
     make-coordinate
     make-origin
     string->coordinate
+    coordinate->string
     coordinate-dimension
     coordinate-regularize
     coordinate-relativize
@@ -20,6 +21,7 @@
   (import
     (chezscheme)
     (cslib utils)
+    (cslib list)
     (cslib vector)
     (cslib string)
     (cslib math)
@@ -35,6 +37,9 @@
     (let* ([str (string-drop-suffix (string-drop-prefix str-coord " " "(") " " ")")]
            [ss (string-split str "x")])
       (list->vector (map string->number ss))))
+
+  (define (coordinate->string c)
+    (apply string-append (intersperse "x" (map number->string (vector->list c)))))
 
   (define coordinate-dimension
     (case-lambda
