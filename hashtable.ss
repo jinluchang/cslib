@@ -7,6 +7,7 @@
     make-equal-hashtable
     hashtable-items
     hashtable-pairs
+    hashtable-import!
     )
 
   (import
@@ -24,6 +25,12 @@
   (define (hashtable-pairs hashtable)
     (with-values (hashtable-entries hashtable)
                  (lambda (ks es) (vector-map cons ks es))))
+
+  (define (hashtable-import! hashtable pairs)
+    (vector-for-each
+      (lambda (p)
+        (hashtable-set! hashtable (car p) (cdr p)))
+      pairs))
 
   ; (
   )
