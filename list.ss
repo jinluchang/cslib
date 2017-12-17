@@ -27,6 +27,8 @@
     flip-map
     flip-mapM
     flip-for-each
+    all
+    any
     )
 
   (import
@@ -171,5 +173,13 @@
     (let ([f (last lsf)]
           [ls (init lsf)])
       (apply for-each f l ls)))
+
+  (define (all p . ls)
+    (eq? #f (memp (lambda (l) (not (apply p l)))
+                  (apply map list ls))))
+
+  (define (any p . ls)
+    (not (eq? #f (memp (lambda (l) (apply p l))
+                       (apply map list ls)))))
 
   )

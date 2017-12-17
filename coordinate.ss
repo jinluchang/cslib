@@ -35,7 +35,7 @@
 
   (define (string->coordinate str-coord)
     (let* ([str (string-drop-suffix (string-drop-prefix str-coord " " "(") " " ")")]
-           [ss (string-split str "x")])
+           [ss (string-split str "x" ",")])
       (list->vector (map string->number ss))))
 
   (define (coordinate->string c)
