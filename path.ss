@@ -19,8 +19,9 @@
     directory-list-paths
     directory-list-directory-paths
     delete-recursive
-    with-cd
     mkdir-p
+    with-cd
+    with-mkdir-cd
     save-fasl-obj
     load-fasl-obj
     load-or-compute
@@ -122,6 +123,13 @@
          (cd dir)
          e ...
          (cd cwd))]))
+
+  (define-syntax with-mkdir-cd
+    (syntax-rules ()
+      [(_ dir e ...)
+       (begin
+         (mkdir-p dir)
+         (with-cd dir e ...))]))
 
   (define (save-fasl-obj path obj)
     (mkdir-p (path-parent path))
