@@ -11,6 +11,7 @@
     fork-limit
     fork-for-each
     flip-fork-for-each
+    fork-for-each-map
     )
 
   (import
@@ -70,6 +71,10 @@
     (let ([f (last lsf)]
           [ls (init lsf)])
       (apply fork-for-each f ls)))
+
+  (define (fork-for-each-map f l . ls)
+    (apply fork-for-each f l ls)
+    (apply map f l ls))
 
   ; (
   )

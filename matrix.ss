@@ -204,7 +204,6 @@
         [(x . xs)
          (fold-left cmatrix* x xs)])))
 
-
   (define cmatrix-inv
     (let ()
       (define inv

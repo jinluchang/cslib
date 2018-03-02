@@ -5,6 +5,7 @@
 
   (export
     pi
+    ii
     sqr
     ratio
     atof
@@ -60,6 +61,8 @@
     )
 
   (define pi 3.141592653589793)
+
+  (define ii (make-rectangular 0 1))
 
   (define (sqr x)
     (* x x))
@@ -173,7 +176,7 @@
                         (op (real-part x))
                         (op (imag-part x)))]))
     (if (null? xs) 0
-      (if (null? (cdr xs)) (car xs)
+      (if (null? (cdr xs)) (cop abs (car xs))
         (let ([len (length xs)]
               [avg (apply average xs)])
           (cop sqrt (/ (apply + (map (lambda (x) (cop sqr (- x avg)))
@@ -188,7 +191,7 @@
   (define (jackknife-sigma . xs)
     (if (null? xs) 0
       (let ([len (length xs)])
-        (* (dec len) (/ (apply std-deviation xs) (sqrt len))))))
+        (* len (/ (apply std-deviation xs) (sqrt len))))))
 
   ; -----------------------------------------------------------------------------------------------
 

@@ -5,6 +5,8 @@
   (export
     alpha-qed
     muon-mass/mev
+    /fm/gev
+    fm*gev
     )
 
   (import
@@ -16,5 +18,11 @@
 
   (define muon-mass/mev
     105.6583745)
+
+  (define /fm/gev
+    0.197326979)
+
+  (define fm*gev
+    (/ 1.0 /fm/gev))
 
   )

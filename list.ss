@@ -62,6 +62,9 @@
   (define (flip-select . idxs-l)
     (apply select (last idxs-l) (init idxs-l)))
 
+  (define (selector . idxs)
+    (lambda (l) (apply select l idxs)))
+
   (define (last xs)
     (car (last-pair xs)))
 

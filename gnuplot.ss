@@ -7,12 +7,14 @@
     mkdtemp
     plot-save
     plot-view
+    mk-plot-line
     )
 
   (import
     (chezscheme)
     (cslib string)
     (cslib path)
+    (cslib list)
     (cslib datatable)
     )
 
@@ -106,5 +108,8 @@
       (system (format "epstopdf '~a'/plot-0.eps --outfile='~a'/plot-0.pdf" (escape wd-tdir) (escape wd-tdir)))
       (system (format "evince '~a'/plot-0.pdf >>'~a'/log 2>&1 &" (escape wd-tdir) (escape wd-tdir))))
     (void))
+
+  (define (mk-plot-line plot-str . lines)
+    (apply string-append plot-str " " (intersperse ", " lines)))
 
   )

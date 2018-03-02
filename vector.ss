@@ -17,12 +17,14 @@
     vector-init
     vector-tail
     vector-select
+    vector-selector
     flip-vector-select
     vector-take
     vector-drop
     vector-sum
     vector-append
     subvector
+    vector-reverse
     make-matrix
     matrix-map
     matrix-imap
@@ -88,6 +90,9 @@
   (define (flip-vector-select . idxs-v)
     (apply vector-select (vector-last idxs-v) (vector-init idxs-v)))
 
+  (define (vector-selector . idxs)
+    (lambda (v) (apply vector-select v idxs)))
+
   (define (vector-take n xs)
     (let ([len (vector-length xs)])
       (cond
@@ -114,6 +119,9 @@
          [j start (+ 1 j)]
          ) ((= j end) subvec)
       (vector-set! subvec i (vector-ref vec j))))
+
+  (define (vector-reverse vec)
+    (list->vector (reverse (vector->list vec))))
 
   (define make-matrix
     (case-lambda

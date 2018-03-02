@@ -21,6 +21,12 @@
     read-vector-line
     datatable->table
     table->datatable
+    nl
+    mk-idx-vec
+    shift-scale-vec
+    mk-idx-val-err-table
+    shift-scale-table-idx
+    merge-same-idx-datatables
     )
 
   (import
@@ -29,6 +35,8 @@
     (cslib string)
     (cslib pmatch)
     (cslib utils)
+    (cslib vector)
+    (cslib math)
     )
 
   (define (datatable? table)
@@ -145,5 +153,35 @@
     (let-values ([(port g) (open-string-output-port)])
       (put-datatable port table)
       (g)))
+
+  (define (mk-idx-vec vec)
+    (list->vector (iota (vector-length vec))))
+
+  (define (shift-scale-vec start step vec)
+    (vector-map (lambda (x) (+ start (* step x))) vec))
+
+  (define (nl . cols)
+    (if (not (pair? cols)) (vector)
+      (apply vector-map vector (mk-idx-vec (car cols)) cols)))
+
+  (define (shift-scale-table-idx start step table)
+    (let ([idx (vector-map vector-head table)]
+          [data (vector-map vector-tail table)])
+      (vector-map vector-cons (shift-scale-vec start step idx) data)))
+
+  (define (nlx start step . cols)
+    (if (not (pair? cols)) (vector)
+        (apply vector-map vector
+               (shift-scale-vec start step (mk-idx-vec (car cols)))
+               cols)))
+
+  (define (mk-idx-val-err-table f datas)
+    ; datas = (list data ...)
+    ; (f data) is the resulting vector
+    (let ([vs (map f datas)])
+      (nl (apply tree-average vs) (apply tree-op average-sigma vs))))
+
+  (define (merge-same-idx-datatables table . tables)
+    (apply vector-map vector-append table (map (lambda (t) (vector-map vector-tail t)) tables)))
 
   )
