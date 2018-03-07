@@ -11,6 +11,7 @@
     =?
     number-cmp
     string-cmp
+    vector-cmp
     curry
     curry-1
     )
@@ -46,14 +47,19 @@
     (string-cmp (symbol->string x) (symbol->string y)))
 
   (define (boolean-cmp x y)
+    ; #f < #t
     (cond
       [(eq? x y) 'eq]
       [x 'gt]
       [y 'lt]))
 
+  (define (vector-cmp x y)
+    (let ([r (number-cmp (vector-length x) (vector-length y))])
+      (if (not (eq? r 'eq)) r
+        (cmp (vector->list x) (vector->list y)))))
+
   (define (cmp x y)
-    ; boolean < number < symbol < string < list
-    ; #f < #t
+    ; boolean < number < symbol < string < vector < list
     (cond
       [(and (number? x) (number? y))
        (number-cmp x y)]
@@ -64,6 +70,8 @@
            (cmp (cdr x) (cdr y))))]
       [(pair? x) 'gt]
       [(pair? y) 'lt]
+      [(and (vector? x) (vector? y))
+       (vector-cmp x y)]
       [(and (string? x) (string? y))
        (string-cmp x y)]
       [(and (symbol? x) (symbol? y))
@@ -78,6 +86,8 @@
       [(symbol? y) 'gt]
       [(string? x) 'lt]
       [(string? y) 'gt]
+      [(vector? x) 'lt]
+      [(vector? y) 'gt]
       [else (pretty-print (format "cmp error ~a ~a" x y))]))
 
   (define (<? x y)

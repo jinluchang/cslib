@@ -5,9 +5,10 @@
 
   (export
     vectors-dp-for-each
-    make-cmatrix
-    parse-cmatrix
     make-cmatrix-id
+    make-cmatrix
+    cmatrix->matrix
+    matrix->cmatrix
     cmatrix-nrows
     cmatrix-ncols
     cmatrix-ref
@@ -27,6 +28,9 @@
     matrix-
     matrix*
     matrix-inv
+    matrix-kronecker-product
+    ;
+    parse-cmatrix
     )
 
   (import
@@ -75,16 +79,6 @@
          (bytevector-s64-native-set! bv 0 nrows)
          (bytevector-s64-native-set! bv 8 ncols)
          bv)]
-      [(mat)
-       (if (number? mat) mat
-         (let* ([nrows (matrix-nrows mat)]
-                [ncols (matrix-ncols mat)]
-                [bv (make-cmatrix nrows ncols)])
-           (matrix-i-for-each
-             (lambda (i j d)
-               (cmatrix-set! bv i j d))
-             mat)
-           bv))]
       [(nrows ncols double-vector)
        (let* ([is (list->vector (iota nrows))]
               [js (list->vector (iota ncols))]
@@ -97,9 +91,23 @@
                  (vector-ref double-vector (* 2 (+ (* ncols i) j)))
                  (vector-ref double-vector (inc (* 2 (+ (* ncols i) j)))))))
            is js)
-         bv)]))
+         bv)]
+      [(mat)
+       (matrix->cmatrix mat)]
+      ))
 
-  (define (parse-cmatrix bv)
+  (define (matrix->cmatrix mat)
+    (if (number? mat) mat
+      (let* ([nrows (matrix-nrows mat)]
+             [ncols (matrix-ncols mat)]
+             [bv (make-cmatrix nrows ncols)])
+        (matrix-i-for-each
+          (lambda (i j d)
+            (cmatrix-set! bv i j d))
+          mat)
+        bv)))
+
+  (define (cmatrix->matrix bv)
     (if (number? bv) bv
       (let* ([nrows (cmatrix-nrows bv)]
              [ncols (cmatrix-ncols bv)]
@@ -113,6 +121,8 @@
               js))
           is)
         )))
+
+  (define parse-cmatrix cmatrix->matrix)
 
   (define make-cmatrix-id
     (case-lambda
@@ -266,16 +276,16 @@
     (vector-nset! m i j c))
 
   (define (matrix+ . xs)
-    (parse-cmatrix (apply cmatrix+ (map make-cmatrix xs))))
+    (cmatrix->matrix (apply cmatrix+ (map matrix->cmatrix xs))))
 
   (define (matrix- . xs)
-    (parse-cmatrix (apply cmatrix- (map make-cmatrix xs))))
+    (cmatrix->matrix (apply cmatrix- (map matrix->cmatrix xs))))
 
   (define (matrix* . xs)
-    (parse-cmatrix (apply cmatrix* (map make-cmatrix xs))))
+    (cmatrix->matrix (apply cmatrix* (map matrix->cmatrix xs))))
 
   (define (matrix-inv x)
-    (parse-cmatrix (cmatrix-inv (make-cmatrix x))))
+    (cmatrix->matrix (cmatrix-inv (matrix->cmatrix x))))
 
   (define make-matrix-id
     (case-lambda
@@ -283,12 +293,12 @@
        (let* ([dim (if (number? m) m (matrix-nrows m))]
               [bv (make-cmatrix dim dim)])
          (for-each (lambda (i) (cmatrix-set! bv i i value)) (iota dim))
-         (parse-cmatrix bv))]
+         (cmatrix->matrix bv))]
       [(m)
        (make-matrix-id m 1.0+0.0i)]))
 
   (define (matrix-kronecker-product x y)
-    (parse-cmatrix (cmatrix-kronecker-product (make-cmatrix x) (make-cmatrix y))))
+    (cmatrix->matrix (cmatrix-kronecker-product (matrix->cmatrix x) (matrix->cmatrix y))))
 
   ; (
   )

@@ -28,15 +28,23 @@
   (define wait-pid
     (let ()
       (assert load-libraries)
-      (let ([w (foreign-procedure "waitpid" (int void* int) int)])
+      (let ([w (foreign-procedure "waitpid" (int void* int) int)]
+            [update-fork-number
+              (lambda (pid)
+                (when (> pid 0)
+                  (fork-number (dec (fork-number))))
+                pid)])
         (case-lambda
-          [() (w -1 0 0)]
-          [(pid) (w pid 0 0)]))))
+          [() (update-fork-number (w -1 0 0))]
+          [(pid) (update-fork-number (w pid 0 0))]))))
 
   (define-syntax fork-exec
     (syntax-rules ()
       [(_ e ...)
-       (let ([pid (fork)])
+       (let* ([fn (fork-number)]
+              [_ (when (>= fn (fork-limit)) (wait-pid))]
+              [_ (fork-number (inc (fork-number)))]
+              [pid (fork)])
          (if (not (= 0 pid)) pid
            (begin e ... (exit))))]))
 
@@ -47,25 +55,40 @@
   (define fork-limit
     (make-parameter 8))
 
+  (define fork-number
+    (make-parameter 0))
+
   (define (fork-for-each f l . ls)
-    (define np-limit (fork-limit))
-    (if (= np-limit 1)
+    (if (= (fork-limit) 1)
       (apply for-each f l ls)
-      (let ([vs (apply map list l ls)]
-            [ht (make-eqv-hashtable)])
-        (let loop ([np 0]
-                   [jobs vs])
-          (if (null? jobs)
-            (for-each wait-pid (vector->list (hashtable-keys ht)))
-            (if (>= np np-limit)
-              (begin
-                (hashtable-delete! ht (wait-pid))
-                (loop (dec np) jobs))
-              (begin
-                (hashtable-set! ht (fork-exec (apply f (car jobs))) #t)
-                (loop (inc np) (cdr jobs))))
-            ))
+      (begin
+        (apply
+          for-each
+          (lambda ls
+            (fork-exec (apply f ls)))
+          l ls)
+        (wait-all)
         (void))))
+
+  ; (define (fork-for-each f l . ls)
+  ;   (define np-limit (fork-limit))
+  ;   (if (= np-limit 1)
+  ;     (apply for-each f l ls)
+  ;     (let ([vs (apply map list l ls)]
+  ;           [ht (make-eqv-hashtable)])
+  ;       (let loop ([np 0]
+  ;                  [jobs vs])
+  ;         (if (null? jobs)
+  ;           (for-each wait-pid (vector->list (hashtable-keys ht)))
+  ;           (if (>= np np-limit)
+  ;             (begin
+  ;               (hashtable-delete! ht (wait-pid))
+  ;               (loop (dec np) jobs))
+  ;             (begin
+  ;               (hashtable-set! ht (fork-exec (apply f (car jobs))) #t)
+  ;               (loop (inc np) (cdr jobs))))
+  ;           ))
+  ;       (void))))
 
   (define (flip-fork-for-each . lsf)
     (let ([f (last lsf)]

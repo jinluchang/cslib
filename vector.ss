@@ -18,6 +18,7 @@
     vector-tail
     vector-select
     vector-selector
+    vector-refer
     flip-vector-select
     vector-take
     vector-drop
@@ -92,6 +93,9 @@
 
   (define (vector-selector . idxs)
     (lambda (v) (apply vector-select v idxs)))
+
+  (define (vector-refer idx)
+    (lambda (v) (vector-ref v idx)))
 
   (define (vector-take n xs)
     (let ([len (vector-length xs)])

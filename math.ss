@@ -34,6 +34,7 @@
     double-list->bytevector
     bytevector->double-list
     gsl-minimization
+    sqr-minimization
     ;
     make-ss
     ss-acc
@@ -57,6 +58,8 @@
     (cslib utils)
     (cslib pmatch)
     (cslib list)
+    (cslib vector)
+    (cslib matrix)
     (cslib string)
     )
 
@@ -180,8 +183,8 @@
         (let ([len (length xs)]
               [avg (apply average xs)])
           (cop sqrt (/ (apply + (map (lambda (x) (cop sqr (- x avg)))
-                                 xs))
-                   (dec len)))))))
+                                     xs))
+                       (dec len)))))))
 
   (define (average-sigma . xs)
     (if (null? xs) 0
@@ -416,7 +419,9 @@
         [(f params)
          (gsl-minimization f params (map (lambda (_) 1.0) params))]
         [(f params step-sizes)
-         (gsl-minimization f params step-sizes 1.0e-8 10000)]
+         (if (number? step-sizes)
+           (gsl-minimization f params (map (lambda (_) step-sizes) params))
+           (gsl-minimization f params step-sizes 1.0e-8 10000))]
         [(f params step-sizes epsabs max-iter)
          (pmatch step-sizes
            [(__ . __)
@@ -427,5 +432,59 @@
               ret)]
            [,s (gsl-minimization f params (map (lambda (_) s) params) epsabs max-iter)])])))
 
-; (
-)
+  ; -----------------------------------------------------------------------------------------------
+
+  (define (shift-param param idx eps)
+    (define size (length param))
+    (define idxs (iota size))
+    (map
+      (lambda (i p)
+        (if (= i idx)
+          (+ p eps)
+          p))
+      idxs param))
+
+  (define (shift-param-2 param idx-1 eps-1 idx-2 eps-2)
+    (shift-param
+      (shift-param param idx-1 eps-1)
+      idx-2 eps-2))
+
+  (define (get-m-matrix fcn param eps)
+    (define size (length param))
+    (define idxs (list->vector (iota size)))
+    (vector-map
+      (lambda (i)
+        (vector-map
+          (lambda (j)
+            (* 1/8 (/ 1 (sqr eps))
+               (- (+ (fcn (shift-param-2 param i eps j eps))
+                     (fcn (shift-param-2 param i (- eps) j (- eps))))
+                  (+ (fcn (shift-param-2 param i (- eps) j eps))
+                     (fcn (shift-param-2 param i eps j (- eps)))))))
+          idxs))
+      idxs))
+
+  (define (get-b-vector fcn param eps)
+    (define size (length param))
+    (define idxs (list->vector (iota size)))
+    (vector-map
+      (lambda (i)
+        (* 1/4 (/ 1 eps)
+           (- (fcn (shift-param param i eps))
+              (fcn (shift-param param i (- eps))))))
+      idxs))
+
+  (define (sqr-minimization fcn param eps)
+    (define best
+      (map
+        -
+        param
+        (vector->list
+          (vector-map
+            (lambda (v) (real-part (vector-head v)))
+            (matrix* (matrix-inv (get-m-matrix fcn param eps))
+                     (vector-map vector (get-b-vector fcn param eps)))))))
+    (list best (map (lambda (_) 0) best) (fcn best) 1))
+
+  ; (
+  )
