@@ -7,6 +7,7 @@
     make-equal-hashtable
     hashtable-items
     hashtable->pairs
+    pairs->hashtable
     hashtable-import!
     ;
     hashtable-pairs

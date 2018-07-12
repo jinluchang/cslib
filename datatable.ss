@@ -22,6 +22,7 @@
     datatable->table
     table->datatable
     nl
+    nlx
     mk-idx-vec
     shift-scale-vec
     mk-idx-val-err-table

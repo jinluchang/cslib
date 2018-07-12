@@ -8,6 +8,7 @@
     on
     cmp
     <?
+    >?
     =?
     number-cmp
     string-cmp
@@ -92,6 +93,9 @@
 
   (define (<? x y)
     (eq? (cmp x y) 'lt))
+
+  (define (>? x y)
+    (eq? (cmp x y) 'gt))
 
   (define (=? x y)
     (eq? (cmp x y) 'eq))

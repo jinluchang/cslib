@@ -110,6 +110,6 @@
     (void))
 
   (define (mk-plot-line plot-str . lines)
-    (apply string-append plot-str " " (intersperse ", " lines)))
+    (apply string-append plot-str " " (intersperse ", " (filter string? lines))))
 
   )

@@ -10,6 +10,7 @@
     init
     last
     take
+    take-while
     drop
     select
     flip-select
@@ -73,6 +74,13 @@
       [(null? xs) xs]
       [(<= n 0) '()]
       [(pair? xs) (cons (car xs) (take (- n 1) (cdr xs)))]))
+
+  (define (take-while p xs)
+    (cond
+      [(null? xs) xs]
+      [(and (pair? xs) (p (car xs)))
+       (cons (car xs) (take-while p (cdr xs)))]
+      [else '()]))
 
   (define (drop n xs)
     (cond

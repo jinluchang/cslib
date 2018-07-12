@@ -34,6 +34,10 @@
     double-list->bytevector
     bytevector->double-list
     gsl-minimization
+    ;
+    expand-fcn
+    run-expanded-fcn
+    efcn-add-constraint
     sqr-minimization
     ;
     make-ss
@@ -213,7 +217,7 @@
   (define (tree-op op . ats)
     (define (top . ats)
       (apply tree-op op ats))
-    (define ts (remp (lambda (v) (eq? 'empty v)) ats))
+    (define ts (remq 'empty ats))
     (cond
       [(null? ats)
        (list)]
@@ -229,7 +233,7 @@
        (car ts)]
       [(and (for-all string? ts) (all-same string=? ts))
        (car ts)]
-      [(for-all tag-pair? ts)
+      [(and (for-all tag-pair? ts) (all-same equal? ts))
        (car ts)]
       [(for-all atom-pair? ts)
        (apply op ts)]
@@ -456,7 +460,7 @@
       (lambda (i)
         (vector-map
           (lambda (j)
-            (* 1/8 (/ 1 (sqr eps))
+            (* 1/4 (/ 1 (sqr eps))
                (- (+ (fcn (shift-param-2 param i eps j eps))
                      (fcn (shift-param-2 param i (- eps) j (- eps))))
                   (+ (fcn (shift-param-2 param i (- eps) j eps))
@@ -469,12 +473,46 @@
     (define idxs (list->vector (iota size)))
     (vector-map
       (lambda (i)
-        (* 1/4 (/ 1 eps)
+        (* 1/2 (/ 1 eps)
            (- (fcn (shift-param param i eps))
               (fcn (shift-param param i (- eps))))))
       idxs))
 
+  (define (expand-fcn fcn param eps)
+    (if (and (pair? fcn) (eq? 'expanded-fcn (car fcn)))
+      (begin
+        (when (not (equal? param (cdr (list-ref fcn 1))))
+          (print (format "ERROR: expand-fcn expansion point do not match")))
+        fcn)
+      (list 'expanded-fcn
+            (cons 'tag param)
+            (get-m-matrix fcn param eps)
+            (get-b-vector fcn param eps)
+            (fcn param))))
+
+  (define (run-expanded-fcn efcn)
+    (if (not (and (pair? efcn) (eq? 'expanded-fcn (car efcn)))) efcn
+      (let ([x0 (cdr (list-ref efcn 1))]
+            [m (list-ref efcn 2)]
+            [b (list-ref efcn 3)]
+            [f0 (list-ref efcn 4)])
+        (lambda (param)
+          (define dx (list->vector (map - param x0)))
+          (+ (vector-nref (matrix* 1/2 (vector dx) m (vector-map vector dx))
+                          0 0)
+             (vector-sum (vector-map * b dx))
+             f0)))))
+
+  (define (efcn-add-constraint efcn sigma)
+    (let ([mat (list-ref efcn 2)])
+      (list 'expanded-fcn
+            (list-ref efcn 1)
+            (matrix+ mat (make-matrix-id mat (/ 2.0 (sqr sigma))))
+            (list-ref efcn 3)
+            (list-ref efcn 4))))
+
   (define (sqr-minimization fcn param eps)
+    (define efcn (expand-fcn fcn param eps))
     (define best
       (map
         -
@@ -482,9 +520,9 @@
         (vector->list
           (vector-map
             (lambda (v) (real-part (vector-head v)))
-            (matrix* (matrix-inv (get-m-matrix fcn param eps))
-                     (vector-map vector (get-b-vector fcn param eps)))))))
-    (list best (map (lambda (_) 0) best) (fcn best) 1))
+            (matrix* (matrix-inv (list-ref efcn 2))
+                     (vector-map vector (list-ref efcn 3)))))))
+    (list best (map (lambda (_) 0) best) ((run-expanded-fcn efcn) best) 1))
 
   ; (
   )
