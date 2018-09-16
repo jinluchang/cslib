@@ -18,7 +18,13 @@
     directory-nonempty?
     directory-list-paths
     directory-list-directory-paths
+    directory-list-paths-recursive
     delete-recursive
+    ls
+    ls-R
+    rm
+    rmdir
+    rm-r
     mkdir-p
     with-cd
     with-mkdir-cd
@@ -66,12 +72,12 @@
                          (apply make-scpair path suffixs))
           path))
 
-  (define (scpath-sort < default f property paths)
+  (define (scpath-sort < default f property paths . suffixs)
     (map cdr
          (list-sort
            (on < car)
            (map (lambda (path)
-                  (make-property-pair default f property path))
+                  (apply make-property-pair default f property path suffixs))
                 paths))))
 
   (define </>
@@ -88,7 +94,11 @@
     (and (file-directory? dir)
          (not (null? (directory-list dir)))))
 
-  (define directory-list-paths
+  (define rm delete-file)
+
+  (define rmdir delete-directory)
+
+  (define ls
     (case-lambda
       [(dir)
        (if (not (file-directory? dir)) '()
@@ -97,17 +107,33 @@
         (apply append (map directory-list-paths dirs))]))
 
   (define (directory-list-directory-paths path)
-    (let ([files (directory-list-paths path)])
+    (let ([files (ls path)])
       (filter file-directory? files)))
 
-  (define (delete-recursive path)
-    (let ([paths (directory-list-paths path)])
-      (with-values
-        (partition file-directory? paths)
-        (lambda (dirs files)
-          (for-each delete-file files)
-          (for-each delete-recursive dirs)))
-      (delete-directory path)))
+  (define (ls-R . paths)
+    (with-values
+      (partition file-directory? paths)
+      (lambda (dirs files)
+        (apply append files
+               (map (lambda (dir)
+                      (cons dir (apply ls-R (ls dir))))
+                    dirs)))))
+
+  (define (rm-r . paths)
+    (with-values
+      (partition file-directory? paths)
+      (lambda (dirs files)
+        (for-each rm files)
+        (for-each (lambda (dir)
+                    (apply rm-r (ls dir))
+                    (rmdir dir))
+                  dirs))))
+
+  (define directory-list-paths ls)
+
+  (define directory-list-paths-recursive ls-R)
+
+  (define delete-recursive rm-r)
 
   (define (mkdir-p path)
     (cond

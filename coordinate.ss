@@ -7,6 +7,7 @@
     make-origin
     string->coordinate
     coordinate->string
+    coordinate->string-p
     coordinate-dimension
     coordinate-regularize
     coordinate-relativize
@@ -40,6 +41,13 @@
 
   (define (coordinate->string c)
     (apply string-append (intersperse "x" (map number->string (vector->list c)))))
+
+  (define (coordinate->string-p c)
+    (string-append
+      "("
+      (apply string-append
+             (intersperse "," (map number->string (vector->list c))))
+      ")"))
 
   (define coordinate-dimension
     (case-lambda
