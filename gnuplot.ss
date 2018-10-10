@@ -54,7 +54,11 @@
         "gnuplot:"
         "\tgnuplot plotfile"
         "mpost:"
-        "\tbash ./convert.sh"))
+        "\tbash ./convert.sh"
+        ""
+        "pdf:"
+        "\tepstopdf plot-0.eps"
+        "\tpdftops -eps plot-0.pdf"))
     (with-output-to-file (filepath-append tdir fn) (lambda () (for-each display-string-ln strs)) 'truncate))
 
   (define (make-gnuplot-script tdir fn cmds)
@@ -113,6 +117,6 @@
     (void))
 
   (define (mk-plot-line plot-str . lines)
-    (apply string-append plot-str " " (intersperse ", \\\n    " (filter string? lines))))
+    (apply string-append plot-str " \\\n    " (intersperse ", \\\n    " (filter string? lines))))
 
   )
