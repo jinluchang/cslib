@@ -9,6 +9,7 @@
     get-datatable
     load-datatable
     load-lines
+    cat
     read-datatable
     put-datatable
     print-datatable
@@ -128,6 +129,11 @@
            [lines (get-lines p)])
       (close-input-port p)
       lines))
+
+  (define cat
+    (case-lambda
+      [(path) (load-lines path)]
+      [paths (apply append (map cat paths))]))
 
   (define (load-datatable path)
     (lines->datatable (load-lines path)))
