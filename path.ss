@@ -102,20 +102,22 @@
   (define (glob-expand-at-path-with-patterns path ps)
     (if (null? ps)
       (list path)
-      (let* ([p (car ps)]
-             [rs (cdr ps)]
-             [names (if (null? rs)
-                      (directory-list path)
-                      (filter (lambda (n) (file-directory? (filepath-append path n))) (directory-list path)))]
-             [ns (filter (lambda (n) (glob-match p n)) names)]
-             [paths (map (lambda (n) (filepath-append path n)) ns)])
-        (apply append (map (lambda (subpath) (glob-expand-at-path-with-patterns subpath rs)) paths)))))
+      (let ([p (car ps)]
+            [rs (cdr ps)])
+        (if (string=? p "") (glob-expand-at-path-with-patterns path rs)
+          (let* ([names (if (null? rs)
+                          (directory-list path)
+                          (filter (lambda (n) (file-directory? (filepath-append path n))) (directory-list path)))]
+                 [ns (filter (lambda (n) (glob-match p n)) names)]
+                 [paths (map (lambda (n) (filepath-append path n)) ns)])
+            (apply append (map (lambda (subpath) (glob-expand-at-path-with-patterns subpath rs)) paths)))))))
 
   (define glob-expand
     (case-lambda
       [(p)
-       (let ([ps (string-split p "/")])
-         (glob-expand-at-path-with-patterns "." ps))]
+       (if (string? p)
+         (glob-expand-at-path-with-patterns "." (string-split p "/"))
+         (glob-expand-at-path-with-patterns "." p))]
       [ps
         (apply append (map glob-expand ps))]))
 
