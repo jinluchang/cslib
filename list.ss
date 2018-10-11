@@ -5,6 +5,7 @@
   (export
     setf-car!
     setf-cdr!
+    replicate
     head
     tail
     init
@@ -44,6 +45,12 @@
 
   (define (setf-cdr! p f)
     (set-cdr! p (f (cdr p))))
+
+  (define (replicate n x)
+    (define (go k r)
+      (if (> k 0) (go (dec k) (cons x r))
+        r))
+    (go n (list)))
 
   (define (head xs)
     (car xs))

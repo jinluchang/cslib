@@ -16,6 +16,7 @@
     string-drop-prefix
     string-split
     string-replace-all
+    glob-match
     take-string
     drop-string
     print
@@ -54,6 +55,55 @@
 
   (define (unlines ls)
     (apply string-append (intersperse "\n" ls)))
+
+  (define (glob-match p s)
+    (define pn (string-length p))
+    (define (simpl n)
+      (if (= pn n) (list)
+        (let ([c (string-ref p n)])
+          (cond
+            [(char=? c #\*) (simpl* (inc n))]
+            [(char=? c #\?) (cons '? (simpl (inc n)))]
+            [(char=? c #\\) (simpl-q (inc n))]
+            [else (cons c (simpl (inc n)))]))))
+    (define (simpl-q n)
+      (if (= pn n) (list #\\)
+        (let ([c (string-ref p n)])
+          (cond
+            [(char=? c #\*) (cons #\* (simpl (inc n)))]
+            [(char=? c #\?) (cons #\? (simpl (inc n)))]
+            [(char=? c #\\) (cons #\\ (simpl (inc n)))]
+            [else (cons* #\\ c (simpl (inc n)))]))))
+    (define (simpl* n)
+      (if (= pn n) (list '*)
+        (let ([c (string-ref p n)])
+          (cond
+            [(char=? c #\*) (simpl* (inc n))]
+            [(char=? c #\?) (cons '? (simpl* (inc n)))]
+            [(char=? c #\\) (cons '* (simpl-q (inc n)))]
+            [else (cons* '* c (simpl (inc n)))]))))
+    (define ps (simpl 0))
+    (define sn (string-length s))
+    (define (go pl k)
+      (if (null? pl) (= sn k)
+        (let ([pc (car pl)])
+          (cond
+            [(char? pc)
+             (and (< k sn)
+                  (char=? pc (string-ref s k))
+                  (go (cdr pl) (inc k)))]
+            [(eq? pc '?)
+             (and (< k sn)
+                  (go (cdr pl) (inc k)))]
+            [(eq? pc '*)
+             (or (go (cdr pl) k)
+                 (and (< k sn)
+                      (go* (cdr pl) (inc k))))]))))
+    (define (go* pl k)
+      (or (go pl k)
+          (and (< k sn)
+               (go* pl (inc k)))))
+    (go ps 0))
 
   (define (string-prefix? prefix s)
     (let ([n (string-length prefix)]

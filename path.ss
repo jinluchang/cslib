@@ -104,7 +104,7 @@
        (if (not (file-directory? dir)) '()
          (map (lambda (file) (filepath-append dir file)) (directory-list dir)))]
       [dirs
-        (apply append (map directory-list-paths dirs))]))
+        (apply append (map ls dirs))]))
 
   (define (directory-list-directory-paths path)
     (let ([files (ls path)])
