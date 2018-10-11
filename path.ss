@@ -20,6 +20,7 @@
     directory-list-directory-paths
     directory-list-paths-recursive
     delete-recursive
+    glob-expand
     ls
     ls-R
     rm
@@ -97,6 +98,26 @@
   (define rm delete-file)
 
   (define rmdir delete-directory)
+
+  (define (glob-expand-at-path-with-patterns path ps)
+    (if (null? ps)
+      (list path)
+      (let* ([p (car ps)]
+             [rs (cdr ps)]
+             [names (if (null? rs)
+                      (directory-list path)
+                      (filter (lambda (n) (file-directory? (filepath-append path n))) (directory-list path)))]
+             [ns (filter (lambda (n) (glob-match p n)) names)]
+             [paths (map (lambda (n) (filepath-append path n)) ns)])
+        (apply append (map (lambda (subpath) (glob-expand-at-path-with-patterns subpath rs)) paths)))))
+
+  (define glob-expand
+    (case-lambda
+      [(p)
+       (let ([ps (string-split p "/")])
+         (glob-expand-at-path-with-patterns "." ps))]
+      [ps
+        (apply append (map glob-expand ps))]))
 
   (define ls
     (case-lambda
