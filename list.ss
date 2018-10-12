@@ -15,6 +15,7 @@
     drop
     select
     flip-select
+    selector
     take-drop
     block-list
     list-nref
@@ -160,7 +161,7 @@
   (define (list-group = xs)
     (define (go x g gs xs)
       (cond
-        [(null? xs) (reverse (cons g gs))]
+        [(null? xs) (reverse (cons (reverse g) gs))]
         [(pair? xs)
          (if (= x (car xs))
            (go x (cons (car xs) g) gs (cdr xs))
