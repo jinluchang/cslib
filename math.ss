@@ -198,7 +198,7 @@
   (define (jackknife-sigma . xs)
     (if (null? xs) 0
       (let ([len (length xs)])
-        (* len (/ (apply std-deviation xs) (sqrt len))))))
+        (* (dec len) (/ (apply std-deviation xs) (sqrt len))))))
 
   ; -----------------------------------------------------------------------------------------------
 
