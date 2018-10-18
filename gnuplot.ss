@@ -97,13 +97,13 @@
       (let* ([tdir (apply make-plot fn cmds)])
         (cond
           [(or (string-suffix? ".eps.pdf" fn) (string-suffix? ".pdf.eps" fn))
-           (system (format "epstopdf '~a'/plot-0.eps --outfile='~a'/plot-0.pdf ; mv '~a'/plot-0.pdf '~a'.pdf"
-                           (escape tdir) (escape tdir) (escape tdir) (escape (string-drop-suffix fn ".pdf.eps" ".eps.pdf"))))
+           (system (format "mv '~a'/plot-0.pdf '~a'.pdf"
+                           (escape tdir) (escape (string-drop-suffix fn ".pdf.eps" ".eps.pdf"))))
            (system (format "mv '~a'/plot-0.eps '~a'.eps"
                            (escape tdir) (escape (string-drop-suffix fn ".pdf.eps" ".eps.pdf"))))]
           [(string-suffix? ".pdf" fn)
-           (system (format "epstopdf '~a'/plot-0.eps --outfile='~a'/plot-0.pdf ; mv '~a'/plot-0.pdf '~a'"
-                           (escape tdir) (escape tdir) (escape tdir) (escape fn)))]
+           (system (format "mv '~a'/plot-0.pdf '~a'"
+                           (escape tdir) (escape fn)))]
           [(string-suffix? ".eps" fn)
            (system (format "mv '~a'/plot-0.eps '~a'" (escape tdir) (escape fn)))]
           [else
