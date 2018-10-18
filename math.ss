@@ -268,7 +268,8 @@
     (let* ([len (length samples)]
            [sum (apply + samples)]
            [psums (map (lambda (s) (- sum s)) samples)])
-      (map (lambda (s) (* (/ 1 (dec len)) s)) psums)))
+      (cons (* (/ 1 len) sum)
+            (map (lambda (s) (* (/ 1 (dec len)) s)) psums))))
 
   ; -----------------------------------------------------------------------------------------------
 

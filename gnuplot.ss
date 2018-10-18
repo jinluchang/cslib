@@ -49,7 +49,7 @@
   (define (make-makefile tdir fn)
     (define strs
       (list
-        "all: gnuplot mpost"
+        "all: gnuplot mpost pdf"
         ""
         "gnuplot:"
         "\tgnuplot plotfile"
