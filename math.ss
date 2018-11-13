@@ -265,6 +265,9 @@
     (* (/ 1.0 (length samples)) (apply + samples)))
 
   (define (jackknife + - * samples)
+    ; return list has one more element than samples
+    ; the first element of the return list is the extra element
+    ; the extra element is the average of samples
     (let* ([len (length samples)]
            [sum (apply + samples)]
            [psums (map (lambda (s) (- sum s)) samples)])

@@ -20,6 +20,7 @@
     directory-list-directory-paths
     directory-list-paths-recursive
     delete-recursive
+    glob-expand-at
     glob-expand
     ls
     ls-R
@@ -112,14 +113,17 @@
                  [paths (map (lambda (n) (filepath-append path n)) ns)])
             (apply append (map (lambda (subpath) (glob-expand-at-path-with-patterns subpath rs)) paths)))))))
 
-  (define glob-expand
+  (define glob-expand-at
     (case-lambda
-      [(p)
+      [(r p)
        (if (string? p)
-         (glob-expand-at-path-with-patterns "." (string-split p "/"))
-         (glob-expand-at-path-with-patterns "." p))]
-      [ps
-        (apply append (map glob-expand ps))]))
+         (glob-expand-at-path-with-patterns r (string-split p "/"))
+         (glob-expand-at-path-with-patterns r p))]
+      [(r . ps)
+       (apply append (map (lambda (p) (glob-expand-at r p)) ps))]))
+
+  (define (glob-expand . ps)
+    (apply glob-expand-at "." ps))
 
   (define ls
     (case-lambda
