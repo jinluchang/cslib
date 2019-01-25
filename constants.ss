@@ -5,6 +5,7 @@
   (export
     alpha-qed
     muon-mass/mev
+    electron-mass/mev
     /fm/gev
     fm*gev
     )
@@ -18,6 +19,9 @@
 
   (define muon-mass/mev
     105.6583745)
+
+  (define electron-mass/mev
+    0.5109989461)
 
   (define /fm/gev
     0.197326979)

@@ -19,6 +19,7 @@
     take-drop
     block-list
     list-nref
+    list-refer
     intersperse
     mapM
     imap
@@ -117,6 +118,10 @@
     (syntax-rules ()
       [(_ l i) (list-ref l i)]
       [(_ l i j ...) (list-nref (list-ref l i) j ...)]))
+
+  (define (list-refer i)
+    (lambda (l)
+      (list-ref l i)))
 
   (define (intersperse x vs)
     (if (null? vs)
