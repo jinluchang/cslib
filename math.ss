@@ -398,6 +398,9 @@
   (define gsl-minimization
     ; input (gsl-minimization f params step-sizes epsabs max-iter)
     ; return (mini-params mini-epsabs fvalue iter)
+    ; e.g.
+    ; (gsl-minimization (lambda (x y) (+ (sqr (- x 5)) (sqr (- y 3)))) (list 1.0 2.0) 0.1)
+    ; --> ((5.000000000000002 3.0000000000000018) 2.614726469808159e-15 6.310887241768095e-30 110)
     (let ()
       (define (make-cs-func f)
         (lambda (size address)
@@ -429,7 +432,7 @@
         [(f params step-sizes)
          (if (number? step-sizes)
            (gsl-minimization f params (map (lambda (_) step-sizes) params))
-           (gsl-minimization f params step-sizes 1.0e-8 10000))]
+           (gsl-minimization f params step-sizes 1.0e-8 1000000))]
         [(f params step-sizes epsabs max-iter)
          (pmatch step-sizes
            [(__ . __)
