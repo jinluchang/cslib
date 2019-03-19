@@ -8,9 +8,9 @@ ClibLatData clib_lat_data_new();
 
 void clib_lat_data_delete(ClibLatData cld);
 
-void clib_lat_data_load(ClibLatData cld, char* path);
+void clib_lat_data_load(ClibLatData cld, const char* path);
 
-void clib_lab_data_save(ClibLatData cld, char* path);
+void clib_lat_data_save(ClibLatData cld, const char* path);
 }
 
 ClibLatData clib_lat_data_new()
@@ -25,13 +25,13 @@ void clib_lat_data_delete(ClibLatData cld)
   delete &ld;
 }
 
-void clib_lat_data_load(ClibLatData cld, char* path)
+void clib_lat_data_load(ClibLatData cld, const char* path)
 {
   LatData& ld = *((LatData*)cld);
   ld.load(path);
 }
 
-void clib_lab_data_save(ClibLatData cld, char* path)
+void clib_lat_data_save(ClibLatData cld, const char* path)
 {
   LatData& ld = *((LatData*)cld);
   ld.save(path);
