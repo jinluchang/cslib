@@ -18,16 +18,16 @@
 
 #pragma once
 
+#include <cassert>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <sstream>
 #include <string>
-#include <cstdarg>
-#include <cstring>
-#include <cstdlib>
-#include <cstdio>
-#include <sstream>
-#include <cassert>
 
-namespace qshow {
+namespace qlat
+{  //
 
 inline std::string vssprintf(const char* fmt, va_list args)
 {
@@ -47,40 +47,19 @@ inline std::string ssprintf(const char* fmt, ...)
   return vssprintf(fmt, args);
 }
 
-inline std::string show()
-{
-  return "";
-}
+inline std::string show() { return ""; }
 
-inline std::string show(const int& x)
-{
-  return ssprintf("%d", x);
-}
+inline std::string show(const int& x) { return ssprintf("%d", x); }
 
-inline std::string show(const unsigned int& x)
-{
-  return ssprintf("%u", x);
-}
+inline std::string show(const unsigned int& x) { return ssprintf("%u", x); }
 
-inline std::string show(const long& x)
-{
-  return ssprintf("%ld", x);
-}
+inline std::string show(const long& x) { return ssprintf("%ld", x); }
 
-inline std::string show(const unsigned long& x)
-{
-  return ssprintf("%lu", x);
-}
+inline std::string show(const unsigned long& x) { return ssprintf("%lu", x); }
 
-inline std::string show(const double& x)
-{
-  return ssprintf("%24.17E", x);
-}
+inline std::string show(const double& x) { return ssprintf("%24.17E", x); }
 
-inline std::string show(const bool& x)
-{
-  return x ? "true" : "false";
-}
+inline std::string show(const bool& x) { return x ? "true" : "false"; }
 
 inline std::string show(const std::string& x)
 {
@@ -116,6 +95,110 @@ inline double read_double(const std::string& str)
 {
   double ret = 0.0;
   reads(ret, str);
+  return ret;
+}
+
+inline std::vector<std::string> split_into_lines(const std::string& str)
+{
+  const size_t len = str.length();
+  std::vector<std::string> lines;
+  size_t start = 0;
+  size_t stop = 0;
+  while (stop < len) {
+    while (start < len && str[start] == '\n') {
+      start += 1;
+    }
+    stop = start;
+    while (stop < len && !(str[stop] == '\n')) {
+      stop += 1;
+    }
+    if (stop > start) {
+      lines.push_back(std::string(str, start, stop - start));
+    }
+    start = stop;
+  }
+  return lines;
+}
+
+inline bool parse_char(char& c, long& cur, const std::string& data)
+{
+  if ((long)data.size() <= cur) {
+    return false;
+  } else {
+    c = data[cur];
+    cur += 1;
+    return true;
+  }
+}
+
+inline bool parse_string(std::string& str, long& cur, const std::string& data)
+{
+  char c;
+  if (!parse_char(c, cur, data) or c != '"') {
+    return false;
+  } else {
+    const long start = cur;
+    char c;
+    while (parse_char(c, cur, data) and c != '"') {
+    }
+    str = std::string(data, start, cur - start - 1);
+    return data[cur - 1] == '"' && cur > start;
+  }
+}
+
+inline bool parse_long(long& num, long& cur, const std::string& data)
+{
+  const long start = cur;
+  char c;
+  while (parse_char(c, cur, data)) {
+    if ('0' > c or c > '9') {
+      cur -= 1;
+      break;
+    }
+  }
+  if (cur <= start) {
+    return false;
+  } else {
+    const std::string str = std::string(data, start, cur - start);
+    num = read_long(str);
+    return true;
+  }
+}
+
+inline bool is_space(const char c)
+{
+  return c == ' ' || c == '\n' || c == '\r' || c == '\t';
+}
+
+inline std::vector<std::string> split_line_with_spaces(const std::string& str)
+{
+  const size_t len = str.length();
+  std::vector<std::string> words;
+  size_t start = 0;
+  size_t stop = 0;
+  while (stop < len) {
+    while (start < len && is_space(str[start])) {
+      start += 1;
+    }
+    stop = start;
+    while (stop < len && !is_space(str[stop])) {
+      stop += 1;
+    }
+    if (stop > start) {
+      words.push_back(std::string(str, start, stop - start));
+    }
+    start = stop;
+  }
+  return words;
+}
+
+inline std::vector<double> read_doubles(const std::string& str)
+{
+  const std::vector<std::string> strs = split_line_with_spaces(str);
+  std::vector<double> ret(strs.size());
+  for (size_t i = 0; i < strs.size(); ++i) {
+    ret[i] = read_double(strs[i]);
+  }
   return ret;
 }
 
@@ -171,8 +254,8 @@ inline void fdisplayln(FILE* fp, const std::string& str)
   fprintf(fp, "%s\n", str.c_str());
 }
 
-}
+}  // namespace qlat
 
 #ifndef USE_NAMESPACE
-using namespace qshow;
+using namespace qlat;
 #endif

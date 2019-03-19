@@ -2,44 +2,44 @@
 
 extern "C" {
 
-  size_t clib_rng_state_num_of_int32();
+size_t clib_rng_state_num_of_int32();
 
-  typedef uint32_t* ClibRngState;
+typedef uint32_t* ClibRngState;
 
-  void clib_set_rng_state_root(ClibRngState rng);
+void clib_set_rng_state_root(ClibRngState rng);
 
-  void clib_set_rng_state_seed_long(ClibRngState rng, const long sindex);
+void clib_set_rng_state_seed_long(ClibRngState rng, const long sindex);
 
-  void clib_set_rng_state_seed_string(ClibRngState rng, const char* sindex);
+void clib_set_rng_state_seed_string(ClibRngState rng, const char* sindex);
 
-  void clib_set_rng_state_split_long(ClibRngState rng, const ClibRngState rng0, const long sindex);
+void clib_set_rng_state_split_long(ClibRngState rng, const ClibRngState rng0,
+                                   const long sindex);
 
-  void clib_set_rng_state_split_string(ClibRngState rng, const ClibRngState rng0, const char* sindex);
+void clib_set_rng_state_split_string(ClibRngState rng, const ClibRngState rng0,
+                                     const char* sindex);
 
-  void clib_set_rng_state_type(ClibRngState rng, const unsigned long type);
+void clib_set_rng_state_type(ClibRngState rng, const unsigned long type);
 
-  uint64_t clib_rand_gen(ClibRngState rng);
+uint64_t clib_rand_gen(ClibRngState rng);
 
-  double clib_u_rand_gen(ClibRngState rng, const double upper, const double lower);
+double clib_u_rand_gen(ClibRngState rng, const double upper,
+                       const double lower);
 
-  double clib_g_rand_gen(ClibRngState rng, const double center, const double sigma);
+double clib_g_rand_gen(ClibRngState rng, const double center,
+                       const double sigma);
 
-  void clib_set_global_rng_state(const ClibRngState rng);
+void clib_set_global_rng_state(const ClibRngState rng);
 
-  void clib_get_global_rng_state(ClibRngState rng);
+void clib_get_global_rng_state(ClibRngState rng);
 
-  uint64_t clib_rand_gen_g();
+uint64_t clib_rand_gen_g();
 
-  double clib_u_rand_gen_g(const double upper, const double lower);
+double clib_u_rand_gen_g(const double upper, const double lower);
 
-  double clib_g_rand_gen_g(const double center, const double sigma);
-
+double clib_g_rand_gen_g(const double center, const double sigma);
 }
 
-size_t clib_rng_state_num_of_int32()
-{
-  return RNG_STATE_NUM_OF_INT32;
-}
+size_t clib_rng_state_num_of_int32() { return RNG_STATE_NUM_OF_INT32; }
 
 void clib_set_rng_state_root(ClibRngState rng)
 {
@@ -59,7 +59,8 @@ void clib_set_rng_state_seed_string(ClibRngState rng, const char* sindex)
   exportRngState(rng, rs);
 }
 
-void clib_set_rng_state_split_long(ClibRngState rng, const ClibRngState rng0, const long sindex)
+void clib_set_rng_state_split_long(ClibRngState rng, const ClibRngState rng0,
+                                   const long sindex)
 {
   RngState rs;
   importRngState(rs, rng0);
@@ -67,7 +68,8 @@ void clib_set_rng_state_split_long(ClibRngState rng, const ClibRngState rng0, co
   exportRngState(rng, rs);
 }
 
-void clib_set_rng_state_split_string(ClibRngState rng, const ClibRngState rng0, const char* sindex)
+void clib_set_rng_state_split_string(ClibRngState rng, const ClibRngState rng0,
+                                     const char* sindex)
 {
   RngState rs;
   importRngState(rs, rng0);
@@ -101,7 +103,8 @@ double clib_u_rand_gen(ClibRngState rng, const double upper, const double lower)
   return ret;
 }
 
-double clib_g_rand_gen(ClibRngState rng, const double center, const double sigma)
+double clib_g_rand_gen(ClibRngState rng, const double center,
+                       const double sigma)
 {
   RngState rs;
   importRngState(rs, rng);
@@ -122,10 +125,7 @@ void clib_get_global_rng_state(ClibRngState rng)
   exportRngState(rng, rs);
 }
 
-uint64_t clib_rand_gen_g()
-{
-  return rand_gen(get_global_rng_state());
-}
+uint64_t clib_rand_gen_g() { return rand_gen(get_global_rng_state()); }
 
 double clib_u_rand_gen_g(const double upper, const double lower)
 {

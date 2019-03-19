@@ -1,22 +1,22 @@
-#include <eigen3/Eigen/Dense>
+#include <Eigen/Dense>
 #include <complex>
 
 extern "C" {
 
-  void clib_matrix_scale(char* ret, const char* x, const double real, const double imag);
+void clib_matrix_scale(char* ret, const char* x, const double real,
+                       const double imag);
 
-  void clib_matrix_plus(char* ret, const char* x, const char* y);
+void clib_matrix_plus(char* ret, const char* x, const char* y);
 
-  void clib_matrix_minus(char* ret, const char* x, const char* y);
+void clib_matrix_minus(char* ret, const char* x, const char* y);
 
-  void clib_matrix_multiply(char* ret, const char* x, const char* y);
+void clib_matrix_multiply(char* ret, const char* x, const char* y);
 
-  void clib_matrix_negate(char* ret, const char* x);
+void clib_matrix_negate(char* ret, const char* x);
 
-  void clib_matrix_inverse(char* ret, const char* x);
+void clib_matrix_inverse(char* ret, const char* x);
 
-  void clib_matrix_trace(char* ret, const char* x);
-
+void clib_matrix_trace(char* ret, const char* x);
 }
 
 using namespace Eigen;
@@ -31,10 +31,10 @@ Mat clib_make_matrix(const char* x)
   const Complex* data = (const Complex*)x + 1;
   const int n = dims[0];
   const int m = dims[1];
-  Mat ret(n,m);
+  Mat ret(n, m);
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < m; ++j) {
-      ret(i,j) = data[m * i + j];
+      ret(i, j) = data[m * i + j];
     }
   }
   return ret;
@@ -50,7 +50,7 @@ void clib_set_matrix(char* x, const Mat& mat)
   dims[1] = m;
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < m; ++j) {
-      data[m * i + j] = mat(i,j);
+      data[m * i + j] = mat(i, j);
     }
   }
 }
@@ -65,7 +65,8 @@ void clib_matrix_minus(char* ret, const char* x, const char* y)
   clib_set_matrix(ret, clib_make_matrix(x) - clib_make_matrix(y));
 }
 
-void clib_matrix_scale(char* ret, const char* x, const double real, const double imag)
+void clib_matrix_scale(char* ret, const char* x, const double real,
+                       const double imag)
 {
   clib_set_matrix(ret, clib_make_matrix(x) * Complex(real, imag));
 }
