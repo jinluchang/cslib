@@ -1,6 +1,3 @@
-#include <Eigen/Dense>
-#include <complex>
-
 extern "C" {
 
 void clib_matrix_scale(char* ret, const char* x, const double real,
@@ -18,6 +15,9 @@ void clib_matrix_inverse(char* ret, const char* x);
 
 void clib_matrix_trace(char* ret, const char* x);
 }
+
+#include <Eigen/Dense>
+#include <complex>
 
 using namespace Eigen;
 

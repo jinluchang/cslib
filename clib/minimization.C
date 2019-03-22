@@ -1,18 +1,18 @@
-#include <gsl/gsl_multimin.h>
-
-#include <cassert>
-#include <vector>
-
 extern "C" {
 
 void clib_minimization_test();
 
 typedef double (*ClibGslMinimizationFunction)(const int, const double*);
 
-size_t clib_gsl_mult_minimization_nmsimplex2(
+long clib_gsl_mult_minimization_nmsimplex2(
     const int n_params, const ClibGslMinimizationFunction f,
-    double* double_inputs, const size_t max_iter);
+    double* double_inputs, const long max_iter);
 }
+
+#include <gsl/gsl_multimin.h>
+
+#include <cassert>
+#include <vector>
 
 double clib_gsl_minimization_function(const gsl_vector* v, void* params)
 {
@@ -25,9 +25,9 @@ double clib_gsl_minimization_function(const gsl_vector* v, void* params)
   return f(size * sizeof(double), vec.data());
 }
 
-size_t clib_gsl_mult_minimization_nmsimplex2(
+long clib_gsl_mult_minimization_nmsimplex2(
     const int n_params, const ClibGslMinimizationFunction f,
-    double* double_inputs, const size_t max_iter)
+    double* double_inputs, const long max_iter)
 {
   double* params = double_inputs;
   const double* step_sizes = double_inputs + n_params;
@@ -50,7 +50,7 @@ size_t clib_gsl_mult_minimization_nmsimplex2(
   minex_func.f = clib_gsl_minimization_function;
   minex_func.params = (void*)f;
   gsl_multimin_fminimizer_set(s, &minex_func, x, ss);
-  size_t iter;
+  long iter;
   int status;
   double size;
   for (iter = 0; iter < max_iter; ++iter) {
@@ -95,7 +95,7 @@ void clib_minimization_test()
   gsl_vector *ss, *x;
   gsl_multimin_function minex_func;
 
-  size_t iter = 0;
+  long iter = 0;
   int status;
   double size;
 

@@ -409,8 +409,8 @@
       (define c-mini
         (foreign-procedure
           "clib_gsl_mult_minimization_nmsimplex2"
-          (int void* u8* size_t)
-          size_t))
+          (int void* u8* long)
+          long))
       (define (mini c-f params step-sizes epsabs max-iter)
         (let* ([n-params (length params)]
                [_ (assert (= n-params (length step-sizes)))]
