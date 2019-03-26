@@ -39,6 +39,7 @@
     (cslib utils)
     (cslib vector)
     (cslib math)
+    (cslib tree)
     )
 
   (define (datatable? table)
