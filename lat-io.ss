@@ -48,7 +48,7 @@
         [(x)
          (cond
            [(lat-data? x)
-            (make-lat-data-copy (cadr x))]
+            (make-lat-data-copy x)]
            [(lat-data-dim? x)
             (make-lat-data-dims x)]
            [(and (list? x) (lat-data-dim? (car x)))

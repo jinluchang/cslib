@@ -114,10 +114,10 @@
         ]))
 
   (define (lat-data-op op . ts)
-    (assert (list? ts))
+    (assert (for-all lat-data? ts))
     (let* ([all-dims (map lat-data-dims ts)]
            [dims (car all-dims)]
-           [ld-ret (apply make-lat-data dims)]
+           [ld-ret (make-lat-data (car ts))]
            [vs (map (lambda (ld) (lat-data-ref ld (vector))) ts)])
       (assert (all-same equal? all-dims))
       (lat-data-set! ld-ret (vector) (apply tree-op op vs))
