@@ -95,6 +95,8 @@
        (car ts)]
       [(and (for-all string? ts) (all-same string=? ts))
        (car ts)]
+      [(for-all lat-data? ts)
+       (apply lat-data-op op ts)]
       [(and (for-all tag-pair? ts) (all-same equal? ts))
        (car ts)]
       [(for-all atom-pair? ts)
@@ -110,6 +112,16 @@
         (print "warning tree-op" ts)
         (car ts)
         ]))
+
+  (define (lat-data-op op . ts)
+    (assert (list? ts))
+    (let* ([all-dims (map lat-data-dims ts)]
+           [dims (car all-dims)]
+           [ld-ret (apply make-lat-data dims)]
+           [vs (map (lambda (ld) (lat-data-ref ld (vector))) ts)])
+      (assert (all-same equal? all-dims))
+      (lat-data-set! ld-ret (vector) (apply tree-op op vs))
+      ld-ret))
 
   (define (tree+ . ts)
     (apply tree-op + ts))
