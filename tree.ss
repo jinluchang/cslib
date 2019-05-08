@@ -17,6 +17,9 @@
     tree-average
     j-average
     jackknife
+    jackknife-ps
+    unjackknife
+    unjackknife-ps
     )
 
   (import
@@ -58,9 +61,10 @@
         (/ (apply std-deviation xs) (sqrt len)))))
 
   (define (jackknife-sigma . xs)
-    (if (null? xs) 0
-      (let ([len (length xs)])
-        (* (dec len) (/ (apply std-deviation xs) (sqrt len))))))
+    (if (or (null? xs) (null? (cdr xs)))
+      (apply average-sigma xs)
+      (let ([len (length (cdr xs))])
+        (* (dec len) (/ (apply std-deviation (cdr xs)) (sqrt len))))))
 
   ; -----------------------------------------------------------------------------------------------
 
@@ -135,7 +139,9 @@
     (apply tree-op average ts))
 
   (define (j-average + * samples)
-    (* (/ 1.0 (length samples)) (apply + samples)))
+    ; (car samples)
+    (* (/ 1.0 (length samples)) (apply + samples))
+    )
 
   (define (jackknife + - * samples)
     ; return list has one more element than samples
@@ -144,8 +150,29 @@
     (let* ([len (length samples)]
            [sum (apply + samples)]
            [psums (map (lambda (s) (- sum s)) samples)])
-      (cons (* (/ 1 len) sum)
-            (map (lambda (s) (* (/ 1 (dec len)) s)) psums))))
+      (if (= len 0) (list 0.0)
+        (if (= len 1) (list sum sum)
+          (cons (* (/ 1 len) sum)
+                (map (lambda (s) (* (/ 1 (dec len)) s)) psums))))))
+
+  (define (unjackknife + - * j-samples)
+    ; return list has one less element than samples
+    ; the first element of the input list should be the total average
+    (let* ([len (dec (length j-samples))]
+           [_ (assert (>= len 0))]
+           [sum (* len (car j-samples))]
+           [vals (map (lambda (s) (- sum (* (dec len) s))) (cdr j-samples))])
+      vals))
+
+  (define (jackknife-ps + - * vals)
+    (define is (cons 'avg (map car vals)))
+    (define js (jackknife + - * (map cdr vals)))
+    (map cons is js))
+
+  (define (unjackknife-ps + - * jvals)
+    (define is (cdr (map car jvals)))
+    (define vs (unjackknife * - * (map cdr jvals)))
+    (map cons is vs))
 
   ; (
   )

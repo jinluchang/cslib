@@ -1,6 +1,7 @@
 #!chezscheme
 
 (library (cslib path)
+  ; )
 
   (export
     scpath-split
@@ -33,6 +34,8 @@
     save-fasl-obj
     load-fasl-obj
     load-or-compute
+    save-obj
+    load-obj
     )
 
   (import
@@ -41,6 +44,7 @@
     (cslib list)
     (cslib string)
     (cslib utils)
+    (cslib io)
     )
 
   (define (scpath-split path . suffixs)
@@ -201,4 +205,15 @@
           (save-fasl-obj path result)
           result))))
 
+  (define (save-obj path obj)
+    (mkdir-p (path-parent path))
+    (let ([tpath (string-append path ".partial")])
+      (call-with-port (open-output-file tpath (file-options no-fail)) (lambda (p) (write obj p)))
+      (rename-file tpath path)))
+
+  (define (load-obj path)
+    (if (not (file-regular? path)) #f
+      (call-with-port (open-input-file path) read)))
+
+  ; (
   )
