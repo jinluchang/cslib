@@ -208,7 +208,12 @@
   (define (save-obj path obj)
     (mkdir-p (path-parent path))
     (let ([tpath (string-append path ".partial")])
-      (call-with-port (open-output-file tpath (file-options no-fail)) (lambda (p) (write obj p)))
+      (call-with-port
+        (open-file-output-port tpath
+                               (file-options no-fail)
+                               (buffer-mode block)
+                               (native-transcoder))
+        (lambda (p) (pretty-print obj p)))
       (rename-file tpath path)))
 
   (define (load-obj path)
