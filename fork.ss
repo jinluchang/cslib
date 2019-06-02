@@ -46,7 +46,11 @@
               [_ (fork-number (inc (fork-number)))]
               [pid (fork)])
          (if (not (= 0 pid)) pid
-           (begin e ... (exit))))]))
+           (begin
+             (fork-number 0)
+             (fork-limit 1)
+             e ...
+             (exit))))]))
 
   (define (wait-all)
     (when (> (wait-pid) 0)
