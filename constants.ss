@@ -9,6 +9,7 @@
     charged-pion-mass/mev
     neutral-pion-mass/mev
     /fm/gev
+    /gev/fm
     fm*gev
     )
 
@@ -25,8 +26,11 @@
   (define electron-mass/mev
     0.5109989461)
 
-  (define /fm/gev
+  (define /gev/fm
     0.197326979)
+
+  (define /fm/gev
+    /gev/fm)
 
   (define charged-pion-mass/mev
     139.57061)

@@ -55,8 +55,10 @@
 
   (define (show-vector-line v)
     (define (show-number x)
-      (if (real? x) (number->string x)
-        (string-append (number->string (real-part x)) " " (number->string (imag-part x)) "i")))
+      (cond
+        [(real? x) (number->string x)]
+        [(complex? x) (string-append (number->string (real-part x)) " " (number->string (imag-part x)) "i")]
+        [(string? x) x]))
     (unwords (map show-number (vector->list v))))
 
   (define (read-vector-line s)
