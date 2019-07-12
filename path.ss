@@ -33,9 +33,11 @@
     with-mkdir-cd
     save-fasl-obj
     load-fasl-obj
-    load-or-compute
+    save-text-obj
+    load-text-obj
     save-obj
     load-obj
+    load-or-compute
     )
 
   (import
@@ -198,14 +200,7 @@
     (if (not (file-regular? path)) #f
       (call-with-port (open-file-input-port path) fasl-read)))
 
-  (define (load-or-compute path thunk)
-    (let ([result (load-fasl-obj path)])
-      (if (not (eq? result #f)) result
-        (let ([result (thunk)])
-          (save-fasl-obj path result)
-          result))))
-
-  (define (save-obj path obj)
+  (define (save-text-obj path obj)
     (mkdir-p (path-parent path))
     (let ([tpath (string-append path ".partial")])
       (call-with-port
@@ -216,9 +211,26 @@
         (lambda (p) (pretty-print obj p)))
       (rename-file tpath path)))
 
-  (define (load-obj path)
+  (define (load-text-obj path)
     (if (not (file-regular? path)) #f
       (call-with-port (open-input-file path) read)))
+
+  (define (save-obj path obj)
+    (if (string-suffix? ".fasl" path)
+        (save-fasl-obj path obj)
+        (save-text-obj path obj)))
+
+  (define (load-obj path)
+    (if (string-suffix? ".fasl" path)
+        (load-fasl-obj path)
+        (load-text-obj path)))
+
+  (define (load-or-compute path thunk)
+    (let ([result (load-obj path)])
+      (if (not (eq? result #f)) result
+          (let ([result (thunk)])
+            (save-obj path result)
+            result))))
 
   ; (
   )
