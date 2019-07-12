@@ -227,9 +227,13 @@
 
   (define (load-or-compute path thunk)
     (let ([result (load-obj path)])
-      (if (not (eq? result #f)) result
+      (if (not (eq? result #f))
+          (begin
+            (print (format "loaded '~a'." path))
+            result)
           (let ([result (thunk)])
             (save-obj path result)
+            (print (format "saved '~a'." path))
             result))))
 
   ; (
