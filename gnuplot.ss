@@ -4,6 +4,7 @@
 
   (export
     escape
+    gnuplot-png-density
     mkdtemp
     plot-save
     plot-view
@@ -26,7 +27,7 @@
 
   (define (make-gnuplot-dir fn)
     (if (eq? fn #f) (mkdtemp "cslib-gnuplot-XXXX")
-      (let* ([tdir (string-append (string-drop-suffix fn ".pdf" ".eps") ".cslib-plot-dir")])
+      (let* ([tdir (string-append (string-drop-suffix fn ".pdf" ".eps" ".png") ".cslib-plot-dir")])
         (delete-recursive tdir)
         (mkdir-p tdir)
         tdir)))
@@ -46,19 +47,28 @@
         "done"))
     (with-output-to-file (filepath-append tdir fn) (lambda () (for-each display-string-ln strs)) 'truncate))
 
+  (define gnuplot-png-density
+    (make-parameter 500))
+
   (define (make-makefile tdir fn)
     (define strs
       (list
-        "all: gnuplot mpost pdf"
+        "all: gnuplot mpost pdf png"
         ""
         "gnuplot:"
         "\tgnuplot plotfile"
+        ""
         "mpost:"
         "\tbash ./convert.sh"
         ""
         "pdf:"
         "\tepstopdf plot-0.eps"
-        "\tpdftops -eps plot-0.pdf"))
+        "\tpdftops -eps plot-0.pdf"
+        ""
+        "png:"
+        (format
+          "\tpdftoppm -r ~a -png plot-0.pdf > plot-0.png" (gnuplot-png-density))
+        ))
     (with-output-to-file (filepath-append tdir fn) (lambda () (for-each display-string-ln strs)) 'truncate))
 
   (define (make-gnuplot-script tdir fn cmds)
@@ -88,26 +98,34 @@
       (system (format "make -C '~a' >> '~a'/log" (escape tdir) (escape tdir)))
       tdir))
 
+  (define (get-suffix-list fn)
+    (cond
+      [(string-suffix? ".eps" fn)
+       (cons "eps" (get-suffix-list (string-drop-suffix fn ".eps")))]
+      [(string-suffix? ".pdf" fn)
+       (cons "pdf" (get-suffix-list (string-drop-suffix fn ".pdf")))]
+      [(string-suffix? ".png" fn)
+       (cons "png" (get-suffix-list (string-drop-suffix fn ".png")))]
+      [else (list)]))
+
+  (define (save-file tdir fn)
+    (let ([fn-base (string-drop-suffix fn ".eps" ".pdf" ".png")]
+          [suffix-list (get-suffix-list fn)])
+      (for-each
+        (lambda (suffix)
+          (system (format "mv '~a'/plot-0.~a '~a'.~a"
+                          (escape tdir) suffix
+                          (escape fn-base) suffix)))
+        suffix-list)))
+
   (define (plot-save fn . cmds)
-    (if (not (or (string-suffix? ".eps" fn) (string-suffix? ".pdf" fn)))
+    (if (not (or (string-suffix? ".eps" fn) (string-suffix? ".pdf" fn) (string-suffix? ".png" fn)))
       (let ([ffn (filepath-append fn (car cmds))])
-        (if (not (or (string-suffix? ".eps" ffn) (string-suffix? ".pdf" ffn)))
+        (if (not (or (string-suffix? ".eps" ffn) (string-suffix? ".pdf" ffn) (string-suffix? ".png" ffn)))
           #f
           (apply plot-save ffn (cdr cmds))))
       (let* ([tdir (apply make-plot fn cmds)])
-        (cond
-          [(or (string-suffix? ".eps.pdf" fn) (string-suffix? ".pdf.eps" fn))
-           (system (format "mv '~a'/plot-0.pdf '~a'.pdf"
-                           (escape tdir) (escape (string-drop-suffix fn ".pdf.eps" ".eps.pdf"))))
-           (system (format "mv '~a'/plot-0.eps '~a'.eps"
-                           (escape tdir) (escape (string-drop-suffix fn ".pdf.eps" ".eps.pdf"))))]
-          [(string-suffix? ".pdf" fn)
-           (system (format "mv '~a'/plot-0.pdf '~a'"
-                           (escape tdir) (escape fn)))]
-          [(string-suffix? ".eps" fn)
-           (system (format "mv '~a'/plot-0.eps '~a'" (escape tdir) (escape fn)))]
-          [else
-            (error "plot-save" "unsupported extension")])))
+        (save-file tdir fn)))
     (void))
 
   (define (plot-view . cmds)
