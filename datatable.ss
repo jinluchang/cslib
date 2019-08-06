@@ -156,8 +156,12 @@
   (define (print-datatable table)
     (put-datatable (current-output-port) table))
 
-  (define (save-datatable table path)
-    (call-with-output-file path (lambda (p) (put-datatable p table)) 'truncate))
+  (define (save-datatable path table)
+    (if (string? path)
+        (call-with-output-file path (lambda (p) (put-datatable p table)) 'truncate)
+        (begin
+          (print "WARNING: save-datatable operator wrong order")
+          (save-datatable table path))))
 
   (define (show-datatable table)
     (let-values ([(port g) (open-string-output-port)])
