@@ -156,8 +156,7 @@
                 (map (lambda (s) (* (/ 1 (dec len)) s)) psums))))))
 
   (define (unjackknife + - * j-samples)
-    ; return list has one less element than samples
-    ; the first element of the input list should be the total average
+    ; return list has one less element than j-samples
     (let* ([len (dec (length j-samples))]
            [_ (assert (>= len 0))]
            [sum (* len (car j-samples))]
