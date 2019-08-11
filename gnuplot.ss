@@ -86,7 +86,7 @@
     (define pairs
       (filter pair? cmds))
     (define (save-pair p)
-      (save-datatable (cdr p) (filepath-append tdir (car p))))
+      (save-datatable (filepath-append tdir (car p)) (cdr p)))
     (for-each save-pair pairs))
 
   (define (make-plot fn . cmds)
@@ -119,6 +119,7 @@
         suffix-list)))
 
   (define (plot-save fn . cmds)
+    (print (format "plot '~a'" fn))
     (if (not (or (string-suffix? ".eps" fn) (string-suffix? ".pdf" fn) (string-suffix? ".png" fn)))
       (let ([ffn (filepath-append fn (car cmds))])
         (if (not (or (string-suffix? ".eps" ffn) (string-suffix? ".pdf" ffn) (string-suffix? ".png" ffn)))
