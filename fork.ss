@@ -50,6 +50,7 @@
              (fork-number 0)
              (fork-limit (max 1 (/ (fork-limit) 2)))
              e ...
+             (wait-all)
              (exit))))]))
 
   (define (wait-all)
