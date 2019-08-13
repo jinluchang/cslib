@@ -48,7 +48,7 @@
          (if (not (= 0 pid)) pid
            (begin
              (fork-number 0)
-             (fork-limit (max 1 (/ (fork-limit) 2)))
+             (fork-limit 1)
              e ...
              (wait-all)
              (exit))))]))
