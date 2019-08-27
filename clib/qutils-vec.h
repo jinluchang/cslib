@@ -2,6 +2,8 @@
 
 #include "qutils.h"
 
+#include "rng-state.h"
+
 namespace qlat
 {  //
 
@@ -146,45 +148,6 @@ std::array<M, 10> make_array(const M& x, const M& x1, const M& x2, const M& x3,
 }
 
 template <class M>
-struct Handle {
-  M* p;
-  //
-  Handle<M>() { init(); }
-  Handle<M>(M& obj) { init(obj); }
-  //
-  void init() { p = NULL; }
-  void init(M& obj) { p = (M*)&obj; }
-  //
-  bool null() const { return p == NULL; }
-  //
-  M& operator()() const
-  {
-    qassert(NULL != p);
-    return *p;
-  }
-};
-
-template <class M>
-struct ConstHandle {
-  const M* p;
-  //
-  ConstHandle<M>() { init(); }
-  ConstHandle<M>(const M& obj) { init(obj); }
-  ConstHandle<M>(const Handle<M>& h) { init(h()); }
-  //
-  void init() { p = NULL; }
-  void init(const M& obj) { p = (M*)&obj; }
-  //
-  bool null() const { return p == NULL; }
-  //
-  const M& operator()() const
-  {
-    qassert(NULL != p);
-    return *p;
-  }
-};
-
-template <class M>
 struct Vector {
   M* p;
   long n;
@@ -250,7 +213,7 @@ struct Vector {
 template <class M>
 void set_zero(Vector<M> vec)
 {
-  std::memset(vec.data(), 0, vec.data_size());
+  std::memset((void*)vec.data(), 0, vec.data_size());
 }
 
 template <class M, int N>
@@ -307,7 +270,7 @@ template <class M, int N>
 void set_zero(Array<M, N> arr)
 {
   long size = N * sizeof(M);
-  std::memset(arr.data(), 0, size);
+  std::memset((void*)arr.data(), 0, size);
 }
 
 template <class M, int N>
@@ -362,6 +325,17 @@ inline Vector<int> get_data(const int& x) { return Vector<int>(&x, 1); }
 
 inline Vector<float> get_data(const float& x) { return Vector<float>(&x, 1); }
 
+template <class T>
+double qnorm(const Vector<T>& mm)
+{
+  double sum = 0.0;
+  const long size = mm.size();
+  for (long i = 0; i < size; ++i) {
+    sum += qnorm(mm[i]);
+  }
+  return sum;
+}
+
 template <class M>
 Vector<double> get_data_double(const M& v)
 {
@@ -372,6 +346,12 @@ template <class M>
 Vector<long> get_data_long(const M& v)
 {
   return Vector<long>(&v, sizeof(M) / sizeof(long));
+}
+
+template <class M>
+long get_data_size(const M& x)
+{
+  return get_data(x).data_size();
 }
 
 template <class M>
@@ -409,5 +389,28 @@ void to_from_big_endian_64(Vector<M> v)
 {
   to_from_big_endian_64((void*)v.data(), v.data_size());
 }
+
+template <class M>
+void set_u_rand_double(Vector<M> v, const RngState& rs, const double upper = 1.0,
+                      const double lower = -1.0)
+{
+  RngState rsi = rs;
+  Vector<double> dv((double*)v.data(), v.data_size() / sizeof(double));
+  for (int m = 0; m < dv.size(); ++m) {
+    dv[m] = u_rand_gen(rsi, 1.0, -1.0);
+  }
+}
+
+template <class M>
+void set_u_rand_float(Vector<M> v, const RngState& rs, const double upper = 1.0,
+                      const double lower = -1.0)
+{
+  RngState rsi = rs;
+  Vector<float> dv((float*)v.data(), v.data_size() / sizeof(float));
+  for (int m = 0; m < dv.size(); ++m) {
+    dv[m] = u_rand_gen(rsi, 1.0, -1.0);
+  }
+}
+
 
 }  // namespace qlat

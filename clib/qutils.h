@@ -171,7 +171,7 @@ template <class M>
 void set_zero(std::vector<M>& vec)
 {
   long size = vec.size() * sizeof(M);
-  std::memset(vec.data(), 0, size);
+  std::memset((void*)vec.data(), 0, size);
 }
 
 inline double qnorm(const double& x) { return x * x; }
@@ -179,7 +179,7 @@ inline double qnorm(const double& x) { return x * x; }
 inline double qnorm(const Complex& x) { return std::norm(x); }
 
 template <class T, size_t N>
-inline double qnorm(const std::array<T, N>& mm)
+double qnorm(const std::array<T, N>& mm)
 {
   double sum = 0.0;
   for (size_t i = 0; i < N; ++i) {
@@ -218,13 +218,158 @@ bool operator==(const std::array<M, N>& v1, const std::array<M, N>& v2)
 }
 
 template <class M>
-long get_data_size(const M& x)
+struct Handle {
+  M* p;
+  //
+  Handle<M>() { init(); }
+  Handle<M>(M& obj) { init(obj); }
+  //
+  void init() { p = NULL; }
+  void init(M& obj) { p = (M*)&obj; }
+  //
+  bool null() const { return p == NULL; }
+  //
+  M& operator()() const
+  {
+    qassert(NULL != p);
+    return *p;
+  }
+};
+
+template <class M>
+struct ConstHandle {
+  const M* p;
+  //
+  ConstHandle<M>() { init(); }
+  ConstHandle<M>(const M& obj) { init(obj); }
+  ConstHandle<M>(const Handle<M>& h) { init(h()); }
+  //
+  void init() { p = NULL; }
+  void init(const M& obj) { p = (M*)&obj; }
+  //
+  bool null() const { return p == NULL; }
+  //
+  const M& operator()() const
+  {
+    qassert(NULL != p);
+    return *p;
+  }
+};
+
+template <typename F>
+double simpson(const F& f, const double a, const double b)
 {
-  return get_data(x).data_size();
+  return 1.0 / 6.0 * (f(a) + 4 * f(0.5 * (a + b)) + f(b)) * (b - a);
+}
+
+inline int adaptive_simpson_min_level()
+{
+  static int level = 6;
+  return level;
+}
+
+inline int adaptive_simpson_max_level()
+{
+  static int level = 20;
+  return level;
+}
+
+template <typename F>
+double adaptive_simpson_level(const F& f, const double a, const double b,
+                              const double eps, const int level)
+{
+  const double w = simpson(f, a, b);
+  const double l = simpson(f, a, 0.5 * (a + b));
+  const double r = simpson(f, 0.5 * (a + b), b);
+  const double error = 1.0 / 15.0 * (l + r - w);
+  const double result = l + r + error;
+  if ((level >= adaptive_simpson_min_level() and std::abs(error) <= eps) or
+      level >= adaptive_simpson_max_level()) {
+    return result;
+  } else {
+    return adaptive_simpson_level(f, a, 0.5 * (a + b), eps / 2.0, level + 1) +
+           adaptive_simpson_level(f, 0.5 * (a + b), b, eps / 2.0, level + 1);
+  }
+  return result;
+}
+
+template <typename F>
+struct AdaptiveSimpsonToInf
+{
+  ConstHandle<F> f;
+  double start;
+  //
+  double operator()(const double x) const
+  {
+    if (x == 1.0) {
+      return 0.0;
+    } else {
+      return f()(start + x / (1.0 - x)) / sqr(1.0 - x);
+    }
+  }
+};
+
+template <typename F>
+struct AdaptiveSimpsonFromInf
+{
+  ConstHandle<F> f;
+  double end;
+  //
+  double operator()(const double x) const
+  {
+    if (x == 1.0) {
+      return 0.0;
+    } else {
+      return f()(end - x / (1.0 - x)) / sqr(1.0 - x);
+    }
+  }
+};
+
+template <typename F>
+double adaptive_simpson(const F& f, const double a, const double b,
+                        const double eps)
+{
+  if (b < a) {
+    return -adaptive_simpson(f, b, a, eps);
+  } else if (a == b) {
+    return 0.0;
+  } else {
+    const double inf = 1.0 / 0.0;
+    if (a == -inf and b == inf) {
+      return adaptive_simpson(f, a, 0.0, eps / 2.0) +
+             adaptive_simpson(f, 0.0, b, eps / 2.0);
+    } else if (b == inf) {
+      AdaptiveSimpsonToInf<F> ff;
+      ff.f.init(f);
+      ff.start = a;
+      return adaptive_simpson_level(ff, 0.0, 1.0, eps, 0);
+    } else if (a == -inf) {
+      AdaptiveSimpsonFromInf<F> ff;
+      ff.f.init(f);
+      ff.end = b;
+      return adaptive_simpson_level(ff, 0.0, 1.0, eps, 0);
+    } else {
+      return adaptive_simpson_level(f, a, b, eps, 0);
+    }
+  }
+}
+
+inline void split_work(long& start, long& size, const long total, const long num_worker, const long id_worker)
+{
+  const long size_max = (total - 1) / num_worker + 1;
+  start = std::min(id_worker * size_max, total);
+  const long stop = std::min(start + size_max, total);
+  size = stop - start;
+}
+
+inline long find_worker(const long idx, const long total, const long num_worker)
+{
+  const long size_max = (total - 1) / num_worker + 1;
+  return idx / size_max;
 }
 
 }  // namespace qlat
 
 #ifndef USE_NAMESPACE
-using namespace qlat;
+    using namespace qlat;
 #endif
