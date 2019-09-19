@@ -23,6 +23,7 @@
     double-list->bytevector
     bytevector->double-list
     gsl-minimization
+    gsl-minimization-iter
     ;
     expand-fcn
     run-expanded-fcn
@@ -277,6 +278,14 @@
                   (bytevector-ieee-double-native-set! bv (* 8 i) d))
                 (iota len) ds)
       bv))
+
+  (define (gsl-minimization-iter k f params step-sizes epsabs max-iter)
+    (if (<= k 1)
+        (gsl-minimization f params step-sizes epsabs max-iter)
+        (gsl-minimization-iter
+          (dec k) f
+          (car (gsl-minimization f params step-sizes epsabs max-iter))
+          step-sizes epsabs max-iter)))
 
   (define gsl-minimization
     ; input (gsl-minimization f params step-sizes epsabs max-iter)
