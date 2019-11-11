@@ -28,6 +28,7 @@
     rm
     rmdir
     rm-r
+    mv
     mkdir-p
     with-cd
     with-mkdir-cd
@@ -161,6 +162,8 @@
                     (apply rm-r (ls dir))
                     (rmdir dir))
                   dirs))))
+
+  (define mv rename-file)
 
   (define directory-list-paths ls)
 
