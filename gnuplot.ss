@@ -3,7 +3,6 @@
 (library (cslib gnuplot)
 
   (export
-    escape
     gnuplot-png-density
     mkdtemp
     plot-save
@@ -18,9 +17,6 @@
     (cslib list)
     (cslib datatable)
     )
-
-  (define (escape str)
-    (format "~a" str))
 
   (define (mkdtemp template)
     (get-line (list-ref (process (string-append "mktemp -d -p /tmp " (escape template))) 0)))

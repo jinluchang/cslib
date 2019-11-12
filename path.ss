@@ -23,6 +23,9 @@
     delete-recursive
     glob-expand-at
     glob-expand
+    escape
+    system-call
+    cp
     ls
     ls-R
     rm
@@ -43,6 +46,7 @@
 
   (import
     (chezscheme)
+    (cslib debug)
     (cslib function)
     (cslib list)
     (cslib string)
@@ -131,6 +135,17 @@
 
   (define (glob-expand . ps)
     (apply glob-expand-at "." ps))
+
+  (define (escape str)
+    (string-replace-all str "'" "'\\''"))
+
+  (define (system-call program . args)
+    (system (apply string-append
+                   program
+                   (map (lambda (a) (string-append " '" (escape a) "'")) args))))
+
+  (define (cp . args)
+    (apply system-call "cp --" args))
 
   (define ls
     (case-lambda
