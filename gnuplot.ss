@@ -8,6 +8,7 @@
     plot-save
     plot-view
     mk-plot-line
+    is-making-plots?
     )
 
   (import
@@ -97,13 +98,17 @@
       (save-datatable (filepath-append tdir (car p)) (cdr p)))
     (for-each save-pair pairs))
 
+  (define is-making-plots?
+    (make-parameter #t))
+
   (define (make-plot fn . cmds)
     (let* ([tdir (make-gnuplot-dir fn)])
       (make-mp-to-eps-script tdir "convert.sh")
       (make-makefile tdir fn "Makefile")
       (make-gnuplot-script tdir "plotfile" cmds)
       (save-gnuplot-datatables tdir cmds)
-      (system (format "make -C '~a' >> '~a'/log" (escape tdir) (escape tdir)))
+      (when (is-making-plots?)
+        (system (format "make -C '~a' >> '~a'/log" (escape tdir) (escape tdir))))
       tdir))
 
   (define (get-suffix-list fn)
