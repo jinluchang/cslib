@@ -29,6 +29,7 @@
     run-expanded-fcn
     efcn-add-constraint
     sqr-minimization
+    gsl-minimization-sqr
     ;
     make-ss
     ss-acc
@@ -45,6 +46,8 @@
     make-ve-avg
     ve+
     ve-
+    ;
+    a2-extrap
     )
 
   (import
@@ -411,6 +414,8 @@
             (list-ref efcn 4))))
 
   (define (sqr-minimization fcn param eps)
+    ; e.g. (sqr-minimization (lambda (xs) (apply (lambda (x y) (+ (sqr (- x 5)) (sqr (- y 3)))) xs)) (list 1.0 2.0) 0.1)
+    ; return ((4.999999999999992 2.9999999999996714) 0.0 3.765876499528531e-13+0.0i 1)
     (define efcn (expand-fcn fcn param eps))
     (define best
       (map
@@ -421,7 +426,38 @@
             (lambda (v) (real-part (vector-head v)))
             (matrix* (matrix-inv (list-ref efcn 2))
                      (vector-map vector (list-ref efcn 3)))))))
-    (list best (map (lambda (_) 0) best) ((run-expanded-fcn efcn) best) 1))
+    (list best 0.0 ((run-expanded-fcn efcn) best) 1))
+
+  (define gsl-minimization-sqr
+    (case-lambda
+      [(fcn param eps)
+       (cond
+         [(number? eps)
+          (sqr-minimization (lambda (xs) (apply fcn xs)) param eps)]
+         [(list? eps)
+          (gsl-minimization-sqr fcn param (car eps))]
+         [else (error "gsl-minimization-sqr" "eps not number or list.")])]
+      [(fcn param)
+       (gsl-minimization-sqr fcn param 0.1)]
+      [(fcn param step-sizes epsabs max-iter)
+       (gsl-minimization-sqr fcn param step-sizes)]))
+
+  (define (a2-extrap . table)
+    ; table format (list (list 1/a val err) ...)
+    ; fitting formula val = val0 + coef a^2
+    ; return (list val0 coef)
+    (define (fcn val0 coef)
+      (apply +
+        (map
+          (lambda (entry)
+            (pmatch entry
+              [(,ainv ,val ,err)
+               (sqr (/ (- val
+                          (+ val0 (* coef (sqr (/ ainv)))))
+                       err))]))
+          table)))
+    (gsl-minimization-sqr fcn (list 0.0 0.0) 1.0)
+    )
 
   ; (
   )
