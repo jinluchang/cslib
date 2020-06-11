@@ -126,7 +126,7 @@
           (f (cadr ld) fn)
           ld))))
 
-  (define (save-lat-data ld fn)
+  (define save-lat-data
     (let* ([_ (assert load-libraries)]
            [f (foreign-procedure "clib_lat_data_save"
                                  (void* string) void)])
