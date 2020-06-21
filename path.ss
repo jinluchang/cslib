@@ -13,6 +13,8 @@
     scpair-find-f
     make-property-pair
     scpath-sort
+    paths->scpairs
+    paths->ppairs
     </>
     filepath-append
     directory-empty?
@@ -74,24 +76,46 @@
   (define (make-scpair path . suffixs)
     (cons path (apply scpath-split path suffixs)))
 
-  (define (scpair-find default property scpair)
-    (sclist-find default property (cdr scpair)))
+  (define (paths->scpairs paths . suffixs)
+    (map (lambda (p) (apply make-scpair p suffixs)) paths))
 
-  (define (scpair-find-f default f property scpair)
-    (sclist-find-f default f property (cdr scpair)))
+  (define scpair-find
+    (case-lambda
+      [(default property scpair)
+       (sclist-find default property (cdr scpair))]
+      [(property scpair)
+       (sclist-find #f property (cdr scpair))]))
+
+  (define scpair-find-f
+    (case-lambda
+      [(default f property scpair)
+       (sclist-find-f default f property (cdr scpair))]
+      [(f property scpair)
+       (sclist-find-f #f f property (cdr scpair))]))
 
   (define (make-property-pair default f property path . suffixs)
     (cons (scpair-find-f default f property
                          (apply make-scpair path suffixs))
           path))
 
-  (define (scpath-sort < default f property paths . suffixs)
-    (map cdr
-         (list-sort
-           (on < car)
-           (map (lambda (path)
-                  (apply make-property-pair default f property path suffixs))
-                paths))))
+  (define (paths->ppairs property paths suffixs)
+    (map (lambda (p) (apply make-property-pair #f id property p suffixs)) paths))
+
+  (define scpath-sort
+    (case-lambda
+      [(< default f property paths . suffixs)
+       (map cdr
+            (list-sort
+              (on < car)
+              (map (lambda (path)
+                     (apply make-property-pair default f property path suffixs))
+                   paths)))]
+      [(property paths . suffixs)
+       (apply scpath-sort < 0
+         (lambda (s)
+           (let ([n (string->number s)])
+             (if (eq? n #f) 0 n)))
+         property paths suffixs)]))
 
   (define </>
     (string (directory-separator)))

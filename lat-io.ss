@@ -130,7 +130,7 @@
     (let* ([_ (assert load-libraries)]
            [f (foreign-procedure "clib_lat_data_save"
                                  (void* string) void)])
-      (lambda (ld fn)
+      (lambda (fn ld)
         (assert (lat-data? ld))
         (f (cadr ld) fn))))
 
