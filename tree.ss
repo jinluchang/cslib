@@ -99,14 +99,14 @@
        (car ts)]
       [(and (for-all string? ts) (all-same string=? ts))
        (car ts)]
+      [(for-all (lambda (x) (eq? (list) x)) ts)
+       (car ts)]
       [(for-all lat-data? ts)
        (apply lat-data-op op ts)]
       [(and (for-all tag-pair? ts) (all-same equal? ts))
        (car ts)]
       [(for-all atom-pair? ts)
        (apply op ts)]
-      [(for-all list? ts)
-       (apply map top ts)]
       [(for-all vector? ts)
        (apply vector-map top ts)]
       [(for-all pair? ts)

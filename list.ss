@@ -25,6 +25,7 @@
     imap
     i-for-each
     ass-lookup
+    rec-lookup
     list-group
     list-gsort
     alist-gsort
@@ -162,6 +163,18 @@
     (let ([tags (init tags-alist)]
           [alist (last tags-alist)])
       (go tags alist)))
+
+  (define (rec-lookup alist . tags)
+    (define (go alist tags)
+      (cond
+        [(eq? (list) tags) alist]
+        [(pair? tags)
+         (let ([p (assoc (car tags) alist)])
+           (if (eq? #f p) #f
+               (go (cdr p) (cdr tags))))]))
+    (assert (list? alist))
+    (assert (list? tags))
+    (go alist tags))
 
   (define (list-group = xs)
     (define (go x g gs xs)

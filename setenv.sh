@@ -1,0 +1,1 @@
+export CHEZSCHEMELIBDIRS=".:$HOME"
