@@ -257,6 +257,10 @@
     (if (not (file-regular? path)) #f
       (call-with-port (open-input-file path) read)))
 
+  (define (load-text-objs path)
+    (if (not (file-regular? path)) #f
+      (call-with-port (open-input-file path) read-all)))
+
   (define (save-obj path obj)
     (if (string-suffix? ".fasl" path)
         (save-fasl-obj path obj)
@@ -266,6 +270,9 @@
     (if (string-suffix? ".fasl" path)
         (load-fasl-obj path)
         (load-text-obj path)))
+
+  (define (load-objs path)
+    (load-text-obj path))
 
   (define (load-or-compute path thunk)
     (let ([result (load-obj path)])
